@@ -31,8 +31,13 @@ class OMP():
                               'ON pi=userid '
                       'WHERE projectid=@projectid',
                       {'@projectid': projectid})
+
             cols = c.fetchone()
-            return ProjectInfo(*cols)
+
+            if cols is None:
+                return None
+            else:
+                return ProjectInfo(*cols)
 
 if __name__ == '__main__':
     omp = OMP()

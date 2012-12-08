@@ -2,6 +2,7 @@
 
 import sys
 from codecs import latin_1_decode
+from os import environ
 from re import sub
 from subprocess import Popen, PIPE
 
@@ -23,6 +24,9 @@ def read_header(filename):
     Returns a UkirtHeader (subclass for astropy.io.fits.Header)."""
 
     try:
+        environ['ADAM_NOPROMPT'] = '1'
+        environ['ADAM_EXIT'] = '1'
+
         p = Popen('${KAPPA_DIR}/fitslist ' + filename, shell=True, stdout=PIPE)
 
         (stdout, stderr) = p.communicate()
@@ -33,8 +37,7 @@ def read_header(filename):
             return UkirtHeader.fromstring(header, sep='\n')
 
         else:
-            print(sys.argv[0] + ': failed to read headers')
-            exit(1)
+            return None
 
     except OSError:
         print(sys.argv[0] + ': failed to execute command')
