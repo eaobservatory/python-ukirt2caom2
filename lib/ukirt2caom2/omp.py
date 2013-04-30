@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
 from contextlib import closing
-from collections import namedtuple
 from getpass import getpass
 import sys
 
 import Sybase
 
-ProjectInfo = namedtuple('ProjectInfo', ['title', 'pi'])
+from ukirt2caom2 import ProjectInfo
 
 class OMP():
     """Class for extracting information from the OMP database."""
