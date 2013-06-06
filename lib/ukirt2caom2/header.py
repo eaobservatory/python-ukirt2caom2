@@ -3,20 +3,19 @@
 import sys
 from codecs import latin_1_decode
 from os import environ
-from re import sub
 from subprocess import Popen, PIPE
 
 from astropy.io.fits import Header
+
+from ukirt2caom2.util import valid_object
 
 class UkirtHeader(Header):
     """Class for handling FITS headers from UKIRT data."""
 
     def get_object(self):
-        """Fetch the source name.
+        """Fetch the source name."""
 
-        Various characters are replaced by underscores."""
-
-        return sub('[^-_+,.A-Za-z0-9]', '_', self['OBJECT'])
+        return valid_object(self['OBJECT'])
 
 def read_header(filename):
     """Uses the KAPPA fitslist command to fetch the FITS header.
