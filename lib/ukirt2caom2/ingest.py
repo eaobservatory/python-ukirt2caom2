@@ -45,7 +45,8 @@ class IngestRaw:
                 date, obs_num,
                 splitext(doc['filename'])[0],
                 project_id, project_info,
-                self.geo)
+                self.geo,
+                doc['filename'].endswith('.fits'))
 
         observation.ingest(headers)
 
