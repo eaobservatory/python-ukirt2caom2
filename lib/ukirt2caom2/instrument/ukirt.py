@@ -15,6 +15,8 @@ from jcmt2caom2.mjd import utc2mjd
 
 from ukirt2caom2.util import airmass_to_elevation, valid_object
 
+c = 299792458.0
+
 class ObservationUKIRT():
     def __init__(self, date, obs_num, id_, project_id, project_info,
                  geolocation, fits_format):
@@ -50,6 +52,7 @@ class ObservationUKIRT():
         # over-ridden by sub-classes.
 
         self.ingest_target(headers)
+        self.ingest_type_intent(headers)
         self.ingest_environment(headers)
         self.ingest_instrument(headers)
         self.ingest_plane(headers)
@@ -95,6 +98,10 @@ class ObservationUKIRT():
 
         if 'AIRTEMP' in headers[0]:
             environment.ambient_temp = headers[0]['AIRTEMP']
+
+        if 'CSOTAU' in headers[0]:
+            environment.tau = headers[0]['CSOTAU']
+            environment.wavelength_tau = c / 225.0e9
 
         self.caom2.environment = environment
 

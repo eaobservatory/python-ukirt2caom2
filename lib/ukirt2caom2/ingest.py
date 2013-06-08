@@ -11,9 +11,6 @@ from ukirt2caom2.instrument import instrument_classes
 
 from SECRET import staff_password
 
-class IngestionError(Exception):
-    pass
-
 class IngestRaw:
     def __init__(self):
         self.geo = ukirt_geolocation()

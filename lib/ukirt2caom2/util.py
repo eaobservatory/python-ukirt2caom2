@@ -12,3 +12,8 @@ def valid_object(object):
     """Various characters are replaced by underscores."""
 
     return sub('[^-_+,.A-Za-z0-9]', '_', object)
+
+def clean_header(header):
+    """Sometimes headers have trailing junk."""
+
+    return header.partition(' ')[0]
