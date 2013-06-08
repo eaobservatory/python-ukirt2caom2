@@ -19,18 +19,23 @@ class IngestRaw:
         self.db = HeaderDB()
         self.writer = ObservationWriter()
 
-    def ingest_observation(self, instrument, date, obs_num):
-        doc = self.db.find(instrument, date, obs_num)
-        headers = doc['headers']
+    def __call__(self, instrument, date=None, obs_num=None):
+        for doc in self.db.find(instrument, date, obs_num):
+            self.ingest_observation(instrument,
+                doc['utdate'] if date is None else date,
+                doc['obs'] if obs_num is None else obs_num,
+                doc['headers'], doc['filename'])
 
+    def ingest_observation(self, instrument, date, obs_num, headers, filename):
         # Collect project information.
 
-        project_id = valid_project_code(headers[0]['PROJECT'])
+        project_id = valid_project_code(headers[0].get('PROJECT', None))
 
         if project_id is None:
             project_info = None
 
         else:
+            project_id = project_id.encode('ascii')
             project_info = self.omp.project_info(project_id)
 
             if project_info is None:
@@ -40,10 +45,10 @@ class IngestRaw:
 
         observation = instrument_classes[instrument](
                 date, obs_num,
-                splitext(doc['filename'])[0],
+                splitext(filename)[0],
                 project_id, project_info,
                 self.geo,
-                doc['filename'].endswith('.fits'))
+                filename.endswith('.fits'))
 
         observation.ingest(headers)
 

@@ -26,19 +26,17 @@ class ObservationUFTI(ObservationUKIRT):
     def ingest_type_intent(self, headers):
         type = clean_header(headers[0]['OBSTYPE']).lower().encode('ascii')
 
-        self.caom2.obs_type = type
+        if type != '':
+            self.caom2.obs_type = type
 
-        if type == 'object':
-            self.caom2.intent =  ObservationIntentType.SCIENCE
+            if type == 'object':
+                self.caom2.intent =  ObservationIntentType.SCIENCE
 
-        elif type == 'sky':
-            raise IngestionError('Don\'t know what obstype sky means')
+            elif type in ('sky', 'dark'):
+                self.caom2.intent =  ObservationIntentType.CALIBRATION
 
-        elif type == 'dark':
-            self.caom2.intent =  ObservationIntentType.CALIBRATION
-
-        else:
-            raise IngestionError('Unknown OBSTYPE: ' + type)
+            else:
+                raise IngestionError('Unknown OBSTYPE: ' + type)
 
 
 instrument_classes['ufti'] = ObservationUFTI

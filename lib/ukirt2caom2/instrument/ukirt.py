@@ -78,13 +78,17 @@ class ObservationUKIRT():
 
         for hdr in headers:
             if 'AMSTART' in hdr:
-                airmasses.append(hdr['AMSTART'])
+                if type(hdr['AMSTART']) == float:
+                    airmasses.append(hdr['AMSTART'])
             if 'AMEND' in hdr:
-                airmasses.append(hdr['AMEND'])
+                if type(hdr['AMEND']) == float:
+                    airmasses.append(hdr['AMEND'])
 
-        environment.elevation = airmass_to_elevation(max(airmasses))
+        if airmasses:
+            environment.elevation = airmass_to_elevation(max(airmasses))
 
-        if 'HUMIDITY' in headers[0]:
+        if ('HUMIDITY' in headers[0] and
+                type(headers[0]['HUMIDITY']) == float):
             humidity = headers[0]['HUMIDITY'] / 100
 
             # We seem to have some humidity values over 100% which
@@ -100,8 +104,12 @@ class ObservationUKIRT():
             environment.ambient_temp = headers[0]['AIRTEMP']
 
         if 'CSOTAU' in headers[0]:
-            environment.tau = headers[0]['CSOTAU']
-            environment.wavelength_tau = c / 225.0e9
+            tau = headers[0]['CSOTAU']
+
+            # Ignore invalid tau values
+            if 0.0 <= tau <= 1.0:
+                environment.tau = tau
+                environment.wavelength_tau = c / 225.0e9
 
         self.caom2.environment = environment
 

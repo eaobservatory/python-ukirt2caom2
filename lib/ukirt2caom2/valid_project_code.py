@@ -10,6 +10,9 @@ def valid_project_code(code):
     A validated project code will be returned if successful, otherwise
     None.'''
 
+    if code is None:
+        return None
+
     code = code.upper()
 
     if code == 'CAL':

@@ -11,15 +11,15 @@ if __name__ == '__main__':
 
     parser = ArgumentParser()
 
-    parser.add_argument('instrument', choices=instruments)
-    parser.add_argument('date')
-    parser.add_argument('observation', type=int)
+    parser.add_argument('--instrument', choices=instruments, required=True)
+    parser.add_argument('--date', required=False, default=None)
+    parser.add_argument('--observation', type=int, required=False, default=None)
 
     args = parser.parse_args()
 
-    if not re.match('^[0-9]{8}$', args.date):
+    if args.date is not None and not re.match('^[0-9]{8}$', args.date):
         raise Exception('Invalid date ' + args.date)
 
     raw = IngestRaw()
 
-    raw.ingest_observation(args.instrument, args.date, args.observation)
+    raw(args.instrument, args.date, args.observation)

@@ -2,7 +2,6 @@
 
 from contextlib import closing
 from getpass import getpass
-import sys
 
 import Sybase
 
@@ -40,4 +39,5 @@ class OMP():
 
 if __name__ == '__main__':
     omp = OMP()
+    import sys
     print(repr(omp.project_info(sys.argv[1])))

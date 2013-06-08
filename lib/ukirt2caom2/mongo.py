@@ -8,13 +8,22 @@ class HeaderDB:
         mongo = MongoClient()
         self.db = mongo.ukirt
 
-    def find(self, instrument, date, obs):
-        cursor = self.db[instrument].find({'utdate': date, 'obs': obs})
+    def find(self, instrument, date, obs_num):
+        prototype = {}
+
+        if date is not None:
+            prototype['utdate'] = date
+
+        if obs_num is not None:
+            prototype['obs'] = obs_num
+
+        cursor = self.db[instrument].find(prototype)
 
         if cursor.count() == 0:
             raise HeaderDBError('No headers found')
 
-        elif cursor.count() > 1:
+        elif date is not None and obs_num is not None and cursor.count() > 1:
             raise HeaderDBError('Multiple headers found')
 
-        return cursor[0]
+        for doc in cursor:
+            yield doc
