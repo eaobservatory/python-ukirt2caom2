@@ -6,6 +6,9 @@ from re import sub
 def airmass_to_elevation(airmass):
     """Converts an airmass to elevation in degrees."""
 
+    if airmass == 0:
+        return None
+
     return degrees(asin(1.0 / airmass))
 
 def valid_object(object):

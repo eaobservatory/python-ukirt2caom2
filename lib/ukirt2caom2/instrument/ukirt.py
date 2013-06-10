@@ -78,17 +78,17 @@ class ObservationUKIRT():
 
         for hdr in headers:
             if 'AMSTART' in hdr:
-                if type(hdr['AMSTART']) == float:
+                if type(hdr['AMSTART']) != unicode:
                     airmasses.append(hdr['AMSTART'])
             if 'AMEND' in hdr:
-                if type(hdr['AMEND']) == float:
+                if type(hdr['AMEND']) != unicode:
                     airmasses.append(hdr['AMEND'])
 
         if airmasses:
             environment.elevation = airmass_to_elevation(max(airmasses))
 
         if ('HUMIDITY' in headers[0] and
-                type(headers[0]['HUMIDITY']) == float):
+                type(headers[0]['HUMIDITY']) != unicode):
             humidity = headers[0]['HUMIDITY'] / 100
 
             # We seem to have some humidity values over 100% which
@@ -100,10 +100,12 @@ class ObservationUKIRT():
 
             environment.humidity = humidity
 
-        if 'AIRTEMP' in headers[0]:
+        if ('AIRTEMP' in headers[0] and
+                type(headers[0]['AIRTEMP']) != unicode):
             environment.ambient_temp = headers[0]['AIRTEMP']
 
-        if 'CSOTAU' in headers[0]:
+        if ('CSOTAU' in headers[0] and
+                type(headers[0]['CSOTAU']) != unicode):
             tau = headers[0]['CSOTAU']
 
             # Ignore invalid tau values
@@ -146,21 +148,32 @@ class ObservationUKIRT():
         chunk = Chunk()
 
         if 'DATE-OBS' in headers[0] and 'DATE-END' in headers[0]:
-            time = CoordAxis1D(Axis('TIME', 'd'))
-            time.range = CoordRange1D(
-                    RefCoord(0.5, self.parse_date(headers[0]['DATE-OBS'])),
-                    RefCoord(1.5, self.parse_date(headers[0]['DATE-END'])))
+            date_start = self.parse_date(headers[0]['DATE-OBS'])
+            date_end = self.parse_date(headers[0]['DATE-END'])
 
-            chunk.time = TemporalWCS(time, 'UTC')
+            if date_start is not None and date_end is not None:
+                time = CoordAxis1D(Axis('TIME', 'd'))
+                time.range = CoordRange1D(
+                        RefCoord(0.5, date_start),
+                        RefCoord(1.5, date_end))
+
+                chunk.time = TemporalWCS(time, 'UTC')
 
         part.chunks = TypedList((Chunk,), chunk)
 
         return [part]
 
     def parse_date(self, date_str):
+        if date_str == '':
+            return None
+
         if date_str[-1] == 'Z':
             date_str = date_str[:-1]
 
-        date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S')
+        try:
+            date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S')
 
-        return utc2mjd(date)
+            return utc2mjd(date)
+
+        except ValueError:
+            return None
