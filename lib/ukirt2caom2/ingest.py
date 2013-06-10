@@ -1,5 +1,6 @@
 from os import makedirs
 from os.path import exists, join, splitext
+from sys import stdout
 
 from caom2.xml.caom2_observation_writer import ObservationWriter
 
@@ -21,7 +22,8 @@ class IngestRaw:
         self.db = HeaderDB()
         self.writer = ObservationWriter()
 
-    def __call__(self, instrument, date=None, obs_num=None, out_dir=None):
+    def __call__(self, instrument, date=None, obs_num=None, out_dir=None,
+                 dump=False):
         for doc in self.db.find(instrument, date, obs_num):
             document_to_ascii(doc)
             obs_date = doc['utdate'] if date is None else date
@@ -30,6 +32,9 @@ class IngestRaw:
                 obs_date,
                 doc['obs'] if obs_num is None else obs_num,
                 doc['headers'], doc['filename'])
+
+            if dump:
+                observation.write(self.writer, stdout)
 
             if out_dir is not None:
                 obs_dir = join(out_dir, instrument, obs_date)
