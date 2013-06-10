@@ -1,4 +1,5 @@
-from os.path import splitext
+from os import makedirs
+from os.path import exists, join, splitext
 
 from caom2.xml.caom2_observation_writer import ObservationWriter
 
@@ -20,13 +21,23 @@ class IngestRaw:
         self.db = HeaderDB()
         self.writer = ObservationWriter()
 
-    def __call__(self, instrument, date=None, obs_num=None):
+    def __call__(self, instrument, date=None, obs_num=None, out_dir=None):
         for doc in self.db.find(instrument, date, obs_num):
             document_to_ascii(doc)
-            self.ingest_observation(instrument,
-                doc['utdate'] if date is None else date,
+            obs_date = doc['utdate'] if date is None else date
+            print(doc['filename'])
+            observation = self.ingest_observation(instrument,
+                obs_date,
                 doc['obs'] if obs_num is None else obs_num,
                 doc['headers'], doc['filename'])
+
+            if out_dir is not None:
+                obs_dir = join(out_dir, instrument, obs_date)
+                if not exists(obs_dir):
+                    makedirs(obs_dir)
+                with open(join(obs_dir, splitext(doc['filename'])[0] + '.xml'),
+                          'w') as f:
+                    observation.write(self.writer, f)
 
     def ingest_observation(self, instrument, date, obs_num, headers, filename):
         # Collect project information.
@@ -54,4 +65,5 @@ class IngestRaw:
 
         observation.ingest(headers)
 
+        return observation
 

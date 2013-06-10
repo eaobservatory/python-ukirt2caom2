@@ -11,15 +11,31 @@ if __name__ == '__main__':
 
     parser = ArgumentParser()
 
-    parser.add_argument('--instrument', choices=instruments, required=True)
-    parser.add_argument('--date', required=False, default=None)
-    parser.add_argument('--observation', type=int, required=False, default=None)
+    parser.add_argument('--instrument', '-i', required=True,
+                        choices=instruments)
+    parser.add_argument('--date', '-d', required=False,
+                        default=None)
+    parser.add_argument('--observation', required=False,
+                        type=int, default=None)
+    parser.add_argument('--dry-run', '-n', required=False,
+                        default=False, action='store_true')
+    parser.add_argument('--out', required=False,
+                        default=None)
 
     args = parser.parse_args()
 
     if args.date is not None and not re.match('^[0-9]{8}$', args.date):
         raise Exception('Invalid date ' + args.date)
 
+    if args.dry_run:
+        out_dir = None
+
+    elif args.out is not None:
+        out_dir = args.out
+
+    else:
+        raise Exception('No output directory specified outside of dry-run mode')
+
     raw = IngestRaw()
 
-    raw(args.instrument, args.date, args.observation)
+    raw(args.instrument, args.date, args.observation, out_dir)
