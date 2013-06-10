@@ -14,17 +14,17 @@ class ObservationUFTI(ObservationUKIRT):
         self.caom2.instrument = instrument
 
         if 'MODE' in headers[0]:
-            mode = clean_header(headers[0]['MODE']).lower().encode('ascii')
+            mode = clean_header(headers[0]['MODE']).lower()
 
             instrument.keywords.append(keywordvalue('mode', mode))
 
         if 'FILTER' in headers[0]:
-            filter = clean_header(headers[0]['FILTER']).lower().encode('ascii')
+            filter = clean_header(headers[0]['FILTER']).lower()
 
             instrument.keywords.append(keywordvalue('filter', filter))
 
     def ingest_type_intent(self, headers):
-        type = clean_header(headers[0]['OBSTYPE']).lower().encode('ascii')
+        type = clean_header(headers[0]['OBSTYPE']).lower()
 
         if type != '':
             self.caom2.obs_type = type

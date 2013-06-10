@@ -3,11 +3,12 @@ from os.path import splitext
 from caom2.xml.caom2_observation_writer import ObservationWriter
 
 from ukirt2caom2.geolocation import ukirt_geolocation
+from ukirt2caom2.instrument import instrument_classes
 from ukirt2caom2.mongo import HeaderDB
 from ukirt2caom2.omp import OMP
 from ukirt2caom2.proposals import Proposals
+from ukirt2caom2.util import document_to_ascii
 from ukirt2caom2.valid_project_code import valid_project_code
-from ukirt2caom2.instrument import instrument_classes
 
 from SECRET import staff_password
 
@@ -21,6 +22,7 @@ class IngestRaw:
 
     def __call__(self, instrument, date=None, obs_num=None):
         for doc in self.db.find(instrument, date, obs_num):
+            document_to_ascii(doc)
             self.ingest_observation(instrument,
                 doc['utdate'] if date is None else date,
                 doc['obs'] if obs_num is None else obs_num,
@@ -35,7 +37,7 @@ class IngestRaw:
             project_info = None
 
         else:
-            project_id = project_id.encode('ascii')
+            project_id = project_id
             project_info = self.omp.project_info(project_id)
 
             if project_info is None:

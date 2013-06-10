@@ -22,7 +22,6 @@ class ObservationUKIRT():
                  geolocation, fits_format):
         self.date = datetime.strptime(date, '%Y%m%d')
         self.fits_format = fits_format
-        id_ = id_.encode('ascii')
 
         self.uri = 'ad:UKIRT/' + id_ + ('.fits' if fits_format else '.sdf')
 
@@ -60,7 +59,7 @@ class ObservationUKIRT():
     def ingest_target(self, headers):
         if 'OBJECT' in headers[0]:
             object = valid_object(headers[0]['OBJECT'])
-            target = Target(object.encode('ascii'))
+            target = Target(object)
 
             if 'STANDARD' in headers[0]:
                 target.standard = True if headers[0]['STANDARD'] else False

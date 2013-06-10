@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from codecs import ascii_encode
 from math import asin, degrees
 from re import sub
 
@@ -20,3 +21,29 @@ def clean_header(header):
     """Sometimes headers have trailing junk."""
 
     return header.partition(' ')[0]
+
+def document_to_ascii(doc):
+    """Convert unicode in the headers to ASCII.
+
+    Because we can't use an up to date version of Python with
+    Sybase we need to convert unicode documents back to
+    ASCII.  However it only seems necessary to alter the
+    values, not the card names.
+
+    Alters the supplied document in place and
+    doesn't return anything."""
+
+    for hdr in doc['headers']:
+        cards = hdr.keys()
+
+        for card in cards:
+            val = hdr[card]
+
+            if type(val) == unicode:
+                hdr[card] = ascii_encode(val)[0]
+
+    for key in doc:
+        if key != 'headers':
+            val = doc[key]
+            if type(val) == unicode:
+                doc[key] = ascii_encode(val)[0]
