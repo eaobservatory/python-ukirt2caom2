@@ -77,17 +77,17 @@ class ObservationUKIRT():
 
         for hdr in headers:
             if 'AMSTART' in hdr:
-                if type(hdr['AMSTART']) != unicode:
+                if type(hdr['AMSTART']) != str:
                     airmasses.append(hdr['AMSTART'])
             if 'AMEND' in hdr:
-                if type(hdr['AMEND']) != unicode:
+                if type(hdr['AMEND']) != str:
                     airmasses.append(hdr['AMEND'])
 
         if airmasses:
             environment.elevation = airmass_to_elevation(max(airmasses))
 
         if ('HUMIDITY' in headers[0] and
-                type(headers[0]['HUMIDITY']) != unicode):
+                type(headers[0]['HUMIDITY']) != str):
             humidity = headers[0]['HUMIDITY'] / 100
 
             # We seem to have some humidity values over 100% which
@@ -100,11 +100,11 @@ class ObservationUKIRT():
             environment.humidity = humidity
 
         if ('AIRTEMP' in headers[0] and
-                type(headers[0]['AIRTEMP']) != unicode):
+                type(headers[0]['AIRTEMP']) != str):
             environment.ambient_temp = headers[0]['AIRTEMP']
 
         if ('CSOTAU' in headers[0] and
-                type(headers[0]['CSOTAU']) != unicode):
+                type(headers[0]['CSOTAU']) != str):
             tau = headers[0]['CSOTAU']
 
             # Ignore invalid tau values
