@@ -139,7 +139,11 @@ class ObservationUKIRT():
         plane.calibration_level = CalibrationLevel.RAW_STANDARD \
             if self.fits_format else CalibrationLevel.RAW_INSTRUMENT
 
-        release = self.date.replace(year=self.date.year + 1)
+        if self.date.month == 2 and self.date.day == 29:
+            release = self.date.replace(day=28, year=self.date.year + 1)
+
+        else:
+            release = self.date.replace(year=self.date.year + 1)
 
         plane.meta_release = release
         plane.data_release = release
