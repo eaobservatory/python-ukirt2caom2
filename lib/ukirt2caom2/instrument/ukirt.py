@@ -53,18 +53,22 @@ class ObservationUKIRT():
         # Go through each ingestion step, allowing each to be
         # over-ridden by sub-classes.
 
-        self.ingest_target(headers)
         self.ingest_type_intent(headers)
+        self.ingest_target(headers)
         self.ingest_environment(headers)
         self.ingest_instrument(headers)
         self.ingest_plane(headers)
 
     def ingest_target(self, headers):
+        # Must ingest type/intent before this to determine whether
+        # we should be reading STANDARD or not.
+
         if 'OBJECT' in headers[0]:
             object = valid_object(headers[0]['OBJECT'])
             target = Target(object)
 
-            if 'STANDARD' in headers[0]:
+            if (self.caom2.intent == ObservationIntentType.SCIENCE and
+                    'STANDARD' in headers[0]):
                 target.standard = True if headers[0]['STANDARD'] else False
 
             target.target_type = None
