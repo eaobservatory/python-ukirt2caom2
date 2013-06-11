@@ -95,17 +95,17 @@ class ObservationUKIRT():
         airmasses = []
 
         for hdr in headers:
-            if 'AMSTART' in hdr:
-                if type(hdr['AMSTART']) != str:
-                    airmasses.append(hdr['AMSTART'])
-            if 'AMEND' in hdr:
-                if type(hdr['AMEND']) != str:
-                    airmasses.append(hdr['AMEND'])
+            if ('AMSTART' in hdr and hdr['AMSTART'] is not None and
+                    type(hdr['AMSTART']) != str):
+                airmasses.append(hdr['AMSTART'])
+            if ('AMEND' in hdr and hdr['AMEND'] is not None and
+                    type(hdr['AMEND']) != str):
+                airmasses.append(hdr['AMEND'])
 
         if airmasses:
             environment.elevation = airmass_to_elevation(max(airmasses))
 
-        if ('HUMIDITY' in headers[0] and
+        if ('HUMIDITY' in headers[0] and headers[0]['HUMIDITY'] is not None and
                 type(headers[0]['HUMIDITY']) != str):
             humidity = headers[0]['HUMIDITY'] / 100
 
@@ -118,11 +118,11 @@ class ObservationUKIRT():
 
             environment.humidity = humidity
 
-        if ('AIRTEMP' in headers[0] and
+        if ('AIRTEMP' in headers[0] and headers[0]['AIRTEMP'] is not None and
                 type(headers[0]['AIRTEMP']) != str):
             environment.ambient_temp = headers[0]['AIRTEMP']
 
-        if ('CSOTAU' in headers[0] and
+        if ('CSOTAU' in headers[0] and headers[0]['CSOTAU'] is not None and
                 type(headers[0]['CSOTAU']) != str):
             tau = headers[0]['CSOTAU']
 
