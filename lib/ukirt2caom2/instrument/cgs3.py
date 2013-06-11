@@ -14,6 +14,8 @@ class ObservationCGS3(ObservationUKIRT):
         self.caom2.instrument = instrument
 
     def ingest_type_intent(self, headers):
+        # CGS3 will need a custom version of this method as it
+        # does not have an OBSTYPE header.
         pass
 
 instrument_classes['cgs3'] = ObservationCGS3

@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from caom2 import Artifact, Chunk, \
         Environment, Part, Plane, Proposal, \
         SimpleObservation, Target, Telescope
-from caom2.caom2_enums import CalibrationLevel
+from caom2.caom2_enums import CalibrationLevel, ObservationIntentType
 from caom2.util.caom2_util import TypedList
 from caom2.wcs.caom2_axis import Axis
 from caom2.wcs.caom2_coord_axis1d import CoordAxis1D
@@ -13,9 +13,12 @@ from caom2.wcs.caom2_temporal_wcs import TemporalWCS
 
 from jcmt2caom2.mjd import utc2mjd
 
-from ukirt2caom2.util import airmass_to_elevation, valid_object
+from ukirt2caom2.util import airmass_to_elevation, clean_header, valid_object
 
 c = 299792458.0
+
+calibration_types = ('dark', 'flat', 'arc', 'sky',
+                     'targetacq', 'bias', 'calibration')
 
 class ObservationUKIRT():
     def __init__(self, date, obs_num, id_, project_id, project_info,
@@ -67,6 +70,22 @@ class ObservationUKIRT():
             target.target_type = None
 
             self.caom2.target = target
+
+    def ingest_type_intent(self, headers):
+        if 'OBSTYPE' in headers[0]:
+            type = clean_header(headers[0]['OBSTYPE']).lower()
+
+            if type != '':
+                self.caom2.obs_type = type
+
+                if type == 'object':
+                    self.caom2.intent = ObservationIntentType.SCIENCE
+
+                elif type in calibration_types:
+                    self.caom2.intent = ObservationIntentType.CALIBRATION
+
+                else:
+                    raise IngestionError('Unknown OBSTYPE: ' + type)
 
     def ingest_environment(self, headers):
         environment = Environment()
