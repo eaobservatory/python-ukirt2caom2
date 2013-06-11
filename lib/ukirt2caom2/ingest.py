@@ -9,6 +9,7 @@ from ukirt2caom2.instrument import instrument_classes
 from ukirt2caom2.mongo import HeaderDB
 from ukirt2caom2.omp import OMP
 from ukirt2caom2.proposals import Proposals
+from ukirt2caom2.translate import TranslationError, Translator
 from ukirt2caom2.util import document_to_ascii
 from ukirt2caom2.valid_project_code import valid_project_code
 
@@ -21,17 +22,26 @@ class IngestRaw:
         self.prop = Proposals()
         self.db = HeaderDB()
         self.writer = ObservationWriter()
+        self.translator = Translator()
 
     def __call__(self, instrument, date=None, obs_num=None, out_dir=None,
                  dump=False):
         for doc in self.db.find(instrument, date, obs_num):
             document_to_ascii(doc)
+            filename = doc['filename']
+
+            try:
+                translated = self.translator.translate(doc['headers'][0])
+            except TranslationError as e:
+                print(filename + ': ' + e.message)
+                translated = None
+
             obs_date = doc['utdate'] if date is None else date
             print(doc['filename'])
             observation = self.ingest_observation(instrument,
                 obs_date,
                 doc['obs'] if obs_num is None else obs_num,
-                doc['headers'], doc['filename'])
+                doc['headers'], filename)
 
             if dump:
                 observation.write(self.writer, stdout)
@@ -40,7 +50,7 @@ class IngestRaw:
                 obs_dir = join(out_dir, instrument, obs_date)
                 if not exists(obs_dir):
                     makedirs(obs_dir)
-                with open(join(obs_dir, splitext(doc['filename'])[0] + '.xml'),
+                with open(join(obs_dir, splitext(filename)[0] + '.xml'),
                           'w') as f:
                     observation.write(self.writer, f)
 
