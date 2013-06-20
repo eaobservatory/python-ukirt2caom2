@@ -12,4 +12,7 @@ class ObservationIRCAM(ObservationUKIRT):
 
         self.caom2.instrument = instrument
 
+    def get_spectral_wcs(self, headers):
+        return None
+
 instrument_classes['ircam'] = ObservationIRCAM

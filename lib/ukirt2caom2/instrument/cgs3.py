@@ -18,4 +18,7 @@ class ObservationCGS3(ObservationUKIRT):
         # does not have an OBSTYPE header.
         pass
 
+    def get_spectral_wcs(self, headers):
+        return None
+
 instrument_classes['cgs3'] = ObservationCGS3

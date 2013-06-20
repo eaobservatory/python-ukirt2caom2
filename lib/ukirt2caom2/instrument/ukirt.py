@@ -185,6 +185,10 @@ class ObservationUKIRT():
 
                 chunk.time = TemporalWCS(time, 'UTC')
 
+        energy = self.get_spectral_wcs(headers)
+        if energy is not None:
+            chunk.energy = energy
+
         part.chunks = TypedList((Chunk,), chunk)
 
         return [part]
