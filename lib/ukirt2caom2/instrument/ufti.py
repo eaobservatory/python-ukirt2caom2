@@ -88,6 +88,11 @@ class ObservationUFTI(ObservationUKIRT):
             else:
                 instrument.keywords.append(keywordvalue('pol', 'false'))
 
+        if 'SPD_GAIN' in headers[0]:
+            speed = clean_header(headers[0]['SPD_GAIN']).lower()
+
+            instrument.keywords.append(keywordvalue('speed', speed))
+
     def get_spectral_wcs(self, headers):
         if 'FILTER' not in headers[0]:
             return None
