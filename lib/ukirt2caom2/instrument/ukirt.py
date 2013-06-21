@@ -189,6 +189,10 @@ class ObservationUKIRT():
         if energy is not None:
             chunk.energy = energy
 
+        position = self.get_spatial_wcs(headers)
+        if position is not None:
+            chunk.position = position
+
         part.chunks = TypedList((Chunk,), chunk)
 
         return [part]

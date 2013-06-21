@@ -15,4 +15,7 @@ class ObservationCGS4(ObservationUKIRT):
     def get_spectral_wcs(self, headers):
         return None
 
+    def get_spatial_wcs(self, headers):
+        return None
+
 instrument_classes['cgs4'] = ObservationCGS4
