@@ -120,7 +120,7 @@ class ObservationUFTI(ObservationUKIRT):
 
         return wcs
 
-    def get_spatial_wcs(self, headers):
+    def get_spatial_wcs(self, headers, translated):
         return None
 
 instrument_classes['ufti'] = ObservationUFTI

@@ -34,14 +34,14 @@ class IngestRaw:
                 translated = self.translator.translate(doc['headers'][0])
             except TranslationError as e:
                 print(filename + ': ' + e.message)
-                translated = None
+                translated = {}
 
             obs_date = doc['utdate'] if date is None else date
             print(doc['filename'])
             observation = self.ingest_observation(instrument,
                 obs_date,
                 doc['obs'] if obs_num is None else obs_num,
-                doc['headers'], filename)
+                doc['headers'], filename, translated)
 
             if dump:
                 observation.write(self.writer, stdout)
@@ -54,7 +54,8 @@ class IngestRaw:
                           'w') as f:
                     observation.write(self.writer, f)
 
-    def ingest_observation(self, instrument, date, obs_num, headers, filename):
+    def ingest_observation(self, instrument, date, obs_num, headers,
+                           filename, translated):
         # Collect project information.
 
         project_id = valid_project_code(headers[0].get('PROJECT', None))
@@ -78,7 +79,7 @@ class IngestRaw:
                 self.geo,
                 filename.endswith('.fits'))
 
-        observation.ingest(headers)
+        observation.ingest(headers, translated)
 
         return observation
 

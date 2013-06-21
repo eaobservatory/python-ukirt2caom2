@@ -15,7 +15,7 @@ class ObservationMichelle(ObservationUKIRT):
     def get_spectral_wcs(self, headers):
         return None
 
-    def get_spatial_wcs(self, headers):
+    def get_spatial_wcs(self, headers, translated):
         return None
 
 instrument_classes['michelle'] = ObservationMichelle

@@ -49,7 +49,7 @@ class ObservationUKIRT():
     def write(self, writer, out):
         writer.write(self.caom2, out)
 
-    def ingest(self, headers):
+    def ingest(self, headers, translated):
         # Go through each ingestion step, allowing each to be
         # over-ridden by sub-classes.
 
@@ -57,7 +57,7 @@ class ObservationUKIRT():
         self.ingest_target(headers)
         self.ingest_environment(headers)
         self.ingest_instrument(headers)
-        self.ingest_plane(headers)
+        self.ingest_plane(headers, translated)
 
     def ingest_target(self, headers):
         # Must ingest type/intent before this to determine whether
@@ -137,7 +137,7 @@ class ObservationUKIRT():
 
         self.caom2.environment = environment
 
-    def ingest_plane(self, headers):
+    def ingest_plane(self, headers, translated):
         plane = Plane('raw')
 
         plane.calibration_level = CalibrationLevel.RAW_STANDARD \
@@ -152,21 +152,21 @@ class ObservationUKIRT():
         plane.meta_release = release
         plane.data_release = release
 
-        artifact = self.ingest_artifact(headers)
+        artifact = self.ingest_artifact(headers, translated)
 
         plane.artifacts[self.uri] = artifact
 
         self.caom2.planes['raw'] = plane
 
-    def ingest_artifact(self, headers):
+    def ingest_artifact(self, headers, translated):
         artifact = Artifact(self.uri)
 
-        for part in self.ingest_parts(headers):
+        for part in self.ingest_parts(headers, translated):
             artifact.parts[part.name] = part
 
         return artifact
 
-    def ingest_parts(self, headers):
+    def ingest_parts(self, headers, translated):
         # We only have FITS files for UFTI and we don't appear to
         # have any with multiple extensions.
         part = Part('fits' if self.fits_format else 'ndf')
@@ -189,7 +189,7 @@ class ObservationUKIRT():
         if energy is not None:
             chunk.energy = energy
 
-        position = self.get_spatial_wcs(headers)
+        position = self.get_spatial_wcs(headers, translated)
         if position is not None:
             chunk.position = position
 
