@@ -8,6 +8,7 @@ from ukirt2caom2.util import clean_header
 from caom2.wcs.caom2_axis import Axis
 from caom2.wcs.caom2_coord_axis1d import CoordAxis1D
 from caom2.wcs.caom2_coord_range1d import CoordRange1D
+from caom2.wcs.caom2_polarization_wcs import PolarizationWCS
 from caom2.wcs.caom2_ref_coord import RefCoord
 from caom2.wcs.caom2_spectral_wcs import SpectralWCS
 
@@ -122,5 +123,29 @@ class ObservationUFTI(ObservationUKIRT):
 
     def get_spatial_wcs(self, headers, translated):
         return None
+
+    def get_polarization_wcs(self, headers):
+        if 'FILTER' not in headers[0]:
+            return None
+
+        (filter, pol) = parse_filter(clean_header(headers[0]['FILTER']))
+
+        if not pol or 'WPLANGLE' not in headers[0]:
+            return None
+
+        angle = headers[0]['WPLANGLE']
+
+        # The Wells 1981 FITS paper defines CTYPE ANGLE as an
+        # angle on the sky in degrees.
+
+        # TODO: is WPLANGLE actually angle on sky ?
+
+        # TODO: check IRPOLARM == 'Extended' ?
+
+        axis = CoordAxis1D(Axis('ANGLE', 'deg'))
+        axis.range = CoordRange1D(RefCoord(0.5, angle),
+                                  RefCoord(1.5, angle))
+
+        return PolarizationWCS(axis)
 
 instrument_classes['ufti'] = ObservationUFTI

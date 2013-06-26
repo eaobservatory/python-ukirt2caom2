@@ -18,4 +18,7 @@ class ObservationMichelle(ObservationUKIRT):
     def get_spatial_wcs(self, headers, translated):
         return None
 
+    def get_polarization_wcs(self, headers):
+            return None
+
 instrument_classes['michelle'] = ObservationMichelle

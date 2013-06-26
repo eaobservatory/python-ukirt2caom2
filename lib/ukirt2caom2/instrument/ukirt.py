@@ -193,6 +193,10 @@ class ObservationUKIRT():
         if position is not None:
             chunk.position = position
 
+        polarization = self.get_polarization_wcs(headers)
+        if polarization is not None:
+            chunk.polarization = polarization
+
         part.chunks = TypedList((Chunk,), chunk)
 
         return [part]
