@@ -33,12 +33,12 @@ ufti_filters = {
         'J98':       (1.17,  1.33,  'J[98]',           None),
         'JBarr':     (None,  None,  'J(Barr)',         None), # 1998-1999
         'K98':       (2.03,  2.37,  'K[98]',           None),
-        'Kprime':    (None,  None,  "K'",              None), # TODO narrow?
-        'Y_MK':      (0.966, 1.078, 'Y_MK',            None),
+        'Kprime':    (1.99,  2.25,  "K'",              None), # TODO check (from OT config)
+        'Y_MK':      (0.966, 1.078, 'Y_MK',            1.022),
         'Z':         (0.850, 1.055, 'Z',               None),
 
-        'Mask':      None,
-        'Blank':     None,
+        'Mask':      (None,  None,  'Mask',            None),
+        'Blank':     (None,  None,  'Blank',           None),
 }
 
 # Copy filter specifications for aliases.
