@@ -2,14 +2,19 @@ from caom2 import Instrument
 from jcmt2caom2.raw import keywordvalue
 
 from ukirt2caom2 import IngestionError
+from ukirt2caom2.coord import CoordFK5
 from ukirt2caom2.instrument import instrument_classes
 from ukirt2caom2.instrument.ukirt import ObservationUKIRT
 from ukirt2caom2.util import clean_header
 from caom2.wcs.caom2_axis import Axis
+from caom2.wcs.caom2_coord2d import Coord2D
 from caom2.wcs.caom2_coord_axis1d import CoordAxis1D
+from caom2.wcs.caom2_coord_axis2d import CoordAxis2D
+from caom2.wcs.caom2_coord_polygon2d import CoordPolygon2D
 from caom2.wcs.caom2_coord_range1d import CoordRange1D
 from caom2.wcs.caom2_polarization_wcs import PolarizationWCS
 from caom2.wcs.caom2_ref_coord import RefCoord
+from caom2.wcs.caom2_spatial_wcs import SpatialWCS
 from caom2.wcs.caom2_spectral_wcs import SpectralWCS
 
 # List of UFTI filters with the 50% cut-on and cut-off points, full name
@@ -66,6 +71,12 @@ def parse_filter(value):
     else:
         # TODO issue warning if not found.
         return (None, pol)
+
+def to_coord2D(coord, xpix=0.5, ypix=1.5):
+    (ra, dec) = coord.deg()
+
+    return Coord2D(RefCoord(float(xpix), ra),
+                   RefCoord(float(ypix), dec))
 
 class ObservationUFTI(ObservationUKIRT):
     def ingest_instrument(self, headers):
@@ -127,7 +138,54 @@ class ObservationUFTI(ObservationUKIRT):
         return wcs
 
     def get_spatial_wcs(self, headers, translated):
-        return None
+        if self.obstype not in ('object', 'sky'):
+            return None
+
+        # Fetch data
+        rabase = translated.get('RA_BASE', None)
+        decbase = translated.get('DEC_BASE', None)
+        xref = translated.get('X_REFERENCE_PIXEL', None)
+        yref = translated.get('Y_REFERENCE_PIXEL', None)
+        rascale = translated.get('RA_SCALE', None)
+        decscale = translated.get('DEC_SCALE', None)
+        x1 = translated.get('X_LOWER_BOUND', None)
+        x2 = translated.get('X_UPPER_BOUND', None)
+        y1 = translated.get('Y_LOWER_BOUND', None)
+        y2 = translated.get('Y_UPPER_BOUND', None)
+        xoff = translated.get('RA_TELESCOPE_OFFSET', None)
+        yoff = translated.get('DEC_TELESCOPE_OFFSET', None)
+
+        if None in (rabase, decbase, xref, yref, rascale, decscale,
+                x1, x2, y1, y2):
+            raise Exception('Not enough information for WCS!')
+            return None
+
+        # Convert to degrees
+        rascale = float(rascale) / 3600.0
+        decscale = float(decscale) / 3600.0
+
+        # Create coordinates
+        base = CoordFK5(ra_deg=rabase, dec_deg=decbase)
+
+        if xoff is not None and yoff is not None:
+            base = base.offset(float(xoff) / 3600.0, float(yoff) / 3600.0)
+
+        box = CoordPolygon2D()
+        box.vertices.append(to_coord2D(base.offset(rascale * (x1 - xref), decscale * (y2 - yref)), x1, y2)) #TL
+        box.vertices.append(to_coord2D(base.offset(rascale * (x2 - xref), decscale * (y2 - yref)), x2, y2)) #TR
+        box.vertices.append(to_coord2D(base.offset(rascale * (x2 - xref), decscale * (y1 - yref)), x2, y1)) #BR
+        box.vertices.append(to_coord2D(base.offset(rascale * (x1 - xref), decscale * (y1 - yref)), x1, y1)) #BL
+
+        spatial_axes = CoordAxis2D(Axis('RA', 'deg'),
+                                   Axis('DEC', 'deg'))
+        spatial_axes.bounds = box
+
+        wcs = SpatialWCS(spatial_axes,
+                         coordsys='ICRS',
+                         equinox=2000.0)
+                  # TODO resolution=(arseconds, seeing/beam)
+
+        return wcs
 
     def get_polarization_wcs(self, headers):
         pol = self.__pol
