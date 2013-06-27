@@ -80,25 +80,30 @@ class ObservationUFTI(ObservationUKIRT):
 
         if 'FILTER' in headers[0]:
             (filter, pol) = parse_filter(clean_header(headers[0]['FILTER']))
-
-            if filter is not None:
-                instrument.keywords.append(keywordvalue('filter', filter[2]))
+            self.__filter = filter
+            self.__pol = pol
 
             if pol:
                 instrument.keywords.append(keywordvalue('pol', 'true'))
             else:
                 instrument.keywords.append(keywordvalue('pol', 'false'))
 
+        else:
+            self.__filter = None
+            self.__pol = None
+
         if 'SPD_GAIN' in headers[0]:
             speed = clean_header(headers[0]['SPD_GAIN']).lower()
 
             instrument.keywords.append(keywordvalue('speed', speed))
 
-    def get_spectral_wcs(self, headers):
-        if 'FILTER' not in headers[0]:
-            return None
+        if self.obstype is not None:
+            instrument.keywords.append(keywordvalue('type', self.obstype))
 
-        (filter, pol) = parse_filter(clean_header(headers[0]['FILTER']))
+    def get_spectral_wcs(self, headers):
+        # TODO deal with Fabry Perot thing.
+
+        filter = self.__filter
 
         if filter is None:
             return None
@@ -125,10 +130,7 @@ class ObservationUFTI(ObservationUKIRT):
         return None
 
     def get_polarization_wcs(self, headers):
-        if 'FILTER' not in headers[0]:
-            return None
-
-        (filter, pol) = parse_filter(clean_header(headers[0]['FILTER']))
+        pol = self.__pol
 
         if not pol or 'WPLANGLE' not in headers[0]:
             return None

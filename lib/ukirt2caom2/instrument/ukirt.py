@@ -46,12 +46,18 @@ class ObservationUKIRT():
 
             self.caom2.proposal = proposal
 
+        # Useful data to cache during the ingestion process
+
+        self.obstype = None
+
     def write(self, writer, out):
         writer.write(self.caom2, out)
 
     def ingest(self, headers, translated):
         # Go through each ingestion step, allowing each to be
-        # over-ridden by sub-classes.
+        # over-ridden by sub-classes.  Note that the order
+        # is important because instrument classes may
+        # add data to the object.
 
         self.ingest_type_intent(headers)
         self.ingest_target(headers)
@@ -90,6 +96,8 @@ class ObservationUKIRT():
 
                 else:
                     raise IngestionError('Unknown OBSTYPE: ' + type)
+
+            self.obstype = type
 
     def ingest_environment(self, headers):
         environment = Environment()
