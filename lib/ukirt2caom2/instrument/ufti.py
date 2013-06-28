@@ -121,12 +121,13 @@ class ObservationUFTI(ObservationUKIRT):
         filter = self.__filter
 
         if filter is None:
-            return None
-
-        (cut_on, cut_off, filter_name, wavelength) = filter
+            (cut_on, cut_off, filter_name, wavelength) = (None,) * 4
+        else:
+            (cut_on, cut_off, filter_name, wavelength) = filter
 
         if cut_on is None or cut_off is None:
-            return None
+            logger.warning('Using default filter cut on and off')
+            (cut_on, cut_off) = (0.8, 2.5) # From Roche P.F. et al. 2002
 
         axis = CoordAxis1D(Axis('WAVE', 'm'))
         axis.range = CoordRange1D(RefCoord(0.5, 1.0e-6 * cut_on),
@@ -134,7 +135,9 @@ class ObservationUFTI(ObservationUKIRT):
 
         wcs = SpectralWCS(axis, 'TOPOCENT')
         wcs.ssysobs = 'TOPOCENT'
-        wcs.bandpass_name = filter_name
+
+        if filter_name is not None:
+            wcs.bandpass_name = filter_name
 
         if wavelength is not None:
             wcs.restwav = 1.0e-6 * wavelength
