@@ -6,6 +6,7 @@ from sys import stdout
 from caom2.xml.caom2_observation_writer import ObservationWriter
 
 from ukirt2caom2 import IngestionError
+from ukirt2caom2.fixup_headers import fixup_headers
 from ukirt2caom2.geolocation import ukirt_geolocation
 from ukirt2caom2.instrument import instrument_classes
 from ukirt2caom2.mongo import HeaderDB
@@ -34,6 +35,7 @@ class IngestRaw:
 
         for doc in self.db.find(instrument, date, obs_num):
             document_to_ascii(doc)
+            fixup_headers(doc)
             filename = doc['filename']
             logger.info('Ingesting observation ' + filename)
 
