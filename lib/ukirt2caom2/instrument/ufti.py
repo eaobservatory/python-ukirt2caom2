@@ -167,6 +167,16 @@ class ObservationUFTI(ObservationUKIRT):
             logger.error('Insufficient information for WCS')
             return None
 
+        if type(rabase) is int:
+            rabase = float(rabase)
+        if type(decbase) is int:
+            decbase = float(decbase)
+
+        if any(map(lambda x: type(x) is not float, (rabase, decbase))):
+            logger.error('Non-float in WCS information: ' +
+                         str(rabase) + ', ' + str(decbase))
+            return None
+
         # Convert to degrees
         rascale = float(rascale) / 3600.0
         decscale = float(decscale) / 3600.0
