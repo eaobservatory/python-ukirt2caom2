@@ -1,3 +1,5 @@
+from logging import getLogger
+
 from caom2 import Instrument
 from jcmt2caom2.raw import keywordvalue
 
@@ -16,6 +18,8 @@ from caom2.wcs.caom2_polarization_wcs import PolarizationWCS
 from caom2.wcs.caom2_ref_coord import RefCoord
 from caom2.wcs.caom2_spatial_wcs import SpatialWCS
 from caom2.wcs.caom2_spectral_wcs import SpectralWCS
+
+logger = getLogger(__name__)
 
 # List of UFTI filters with the 50% cut-on and cut-off points, full name
 # and line wavelength for narrow filters.
@@ -69,7 +73,7 @@ def parse_filter(value):
         return (ufti_filters[value], pol)
 
     else:
-        # TODO issue warning if not found.
+        logger.warning('Filter ' + value + ' is not recognised')
         return (None, pol)
 
 def to_coord2D(coord, xpix=0.5, ypix=1.5):
@@ -157,7 +161,7 @@ class ObservationUFTI(ObservationUKIRT):
 
         if None in (rabase, decbase, xref, yref, rascale, decscale,
                 x1, x2, y1, y2):
-            raise Exception('Not enough information for WCS!')
+            logger.error('Insufficient information for WCS')
             return None
 
         # Convert to degrees
@@ -190,7 +194,11 @@ class ObservationUFTI(ObservationUKIRT):
     def get_polarization_wcs(self, headers):
         pol = self.__pol
 
-        if not pol or 'WPLANGLE' not in headers[0]:
+        if not pol:
+            return None
+
+        if 'WPLANGLE' not in headers[0]:
+            logger.warning('Pol filter present without WPLANGLE')
             return None
 
         angle = headers[0]['WPLANGLE']

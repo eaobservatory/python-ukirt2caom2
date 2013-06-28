@@ -13,6 +13,7 @@ from caom2.wcs.caom2_temporal_wcs import TemporalWCS
 
 from jcmt2caom2.mjd import utc2mjd
 
+from ukirt2caom2 import IngestionError
 from ukirt2caom2.util import airmass_to_elevation, clean_header, valid_object
 
 c = 299792458.0
