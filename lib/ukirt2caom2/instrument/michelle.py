@@ -44,6 +44,48 @@ class ObservationMichelle(ObservationUKIRT):
 
         self.__camera = camera
 
+        # Filter Wheel
+
+        filter = headers[0]['FILTER']
+
+        if filter == '':
+            filter = None
+
+        self.__filter = filter
+
+        # Grating Drum
+
+        grating = headers[0]['GRATNAME']
+
+        if grating == '':
+            grating = None
+
+        if grating is not None:
+            instrument.keywords.append(keywordvalue('grating', grating))
+
+        self.__grating = grating
+
+        # Slit Wheel
+
+        slit = headers[0]['SLITNAME']
+
+        if slit == '':
+            slit = None
+
+        if slit is not None:
+            instrument.keywords.append(keywordvalue('slit', slit))
+
+        self.__slit = slit
+
+        # Cal / Pol unit
+
+        calpol = headers[0].get('CALSELN', None)
+
+        if calpol is not None:
+            instrument.keywords.append(keywordvalue('cal_pol', calpol))
+
+        self.__calpol = calpol
+
     def get_spectral_wcs(self, headers):
         return None
 
