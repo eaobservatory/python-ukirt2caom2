@@ -42,7 +42,7 @@ class IngestRaw:
             try:
                 translated = self.translator.translate(doc['headers'][0])
             except TranslationError as e:
-                logger.warning('Failed to translated headers: ' + e.message)
+                logger.warning('Failed to translate headers: ' + e.message)
                 translated = {}
 
             obs_date = doc['utdate'] if date is None else date
