@@ -6,19 +6,9 @@ from jcmt2caom2.raw import keywordvalue
 from ukirt2caom2 import IngestionError
 from ukirt2caom2.instrument import instrument_classes
 from ukirt2caom2.instrument.ukirt import ObservationUKIRT
-from ukirt2caom2.util import clean_header
+from ukirt2caom2.util import clean_header, normalize_detector_name
 
 logger = getLogger(__name__)
-
-def normalize_detector_name(detector):
-    if detector in (None, 'Detectorname', 'undefined', ''):
-        return None
-
-    # Assuming the 0 is not signficant.
-    if detector == 'fpa046':
-        return 'FPA46'
-
-    return detector.replace(' ', '').replace('_', '').upper()
 
 class ObservationCGS4(ObservationUKIRT):
     def ingest_instrument(self, headers):

@@ -20,6 +20,9 @@ def valid_object(object):
 def clean_header(header):
     """Sometimes headers have trailing junk."""
 
+    if header.endswith('_'):
+        header = header[:-1]
+
     return header.partition(' ')[0]
 
 def document_to_ascii(doc):
@@ -47,3 +50,13 @@ def document_to_ascii(doc):
             val = doc[key]
             if type(val) == unicode:
                 doc[key] = ascii_encode(val)[0]
+
+def normalize_detector_name(detector):
+    if detector in (None, 'Detectorname', 'undefined', ''):
+        return None
+
+    # Assuming the 0 is not signficant.
+    if detector == 'fpa046':
+        return 'FPA46'
+
+    return detector.replace(' ', '').replace('_', '').upper()
