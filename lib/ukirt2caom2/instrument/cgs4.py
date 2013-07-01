@@ -64,7 +64,7 @@ class ObservationCGS4(ObservationUKIRT):
 
         grating = headers[0]['GRATING']
 
-        if grating == '' or grating == 'Undefined':
+        if grating in ('', 'Undefined'):
             grating = None
 
         if grating is not None:
@@ -88,7 +88,7 @@ class ObservationCGS4(ObservationUKIRT):
 
         if mode is not None:
             # We see some modes with and without underscore
-            mode = mode.replace('_', '')
+            mode = mode.replace('_', '').lower()
 
             instrument.keywords.append(keywordvalue('mode', mode))
 

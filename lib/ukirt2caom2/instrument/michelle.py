@@ -57,7 +57,7 @@ class ObservationMichelle(ObservationUKIRT):
 
         grating = headers[0]['GRATNAME']
 
-        if grating == '':
+        if grating in ('', 'undefined'):
             grating = None
 
         if grating is not None:

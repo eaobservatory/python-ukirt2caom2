@@ -39,7 +39,7 @@ class ObservationCGS3(ObservationUKIRT):
 
         # Grating
 
-        grating = headers[0]['C3GRAT']
+        grating = headers[0]['C3GRAT'].lower()
 
         instrument.keywords.append(keywordvalue('grating', grating))
 
