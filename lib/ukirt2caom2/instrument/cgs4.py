@@ -10,6 +10,16 @@ from ukirt2caom2.util import clean_header
 
 logger = getLogger(__name__)
 
+def normalize_detector_name(detector):
+    if detector in (None, 'Detectorname', 'undefined', ''):
+        return None
+
+    # Assuming the 0 is not signficant.
+    if detector == 'fpa046':
+        return 'FPA46'
+
+    return detector.replace(' ', '').replace('_', '').upper()
+
 class ObservationCGS4(ObservationUKIRT):
     def ingest_instrument(self, headers):
         instrument = Instrument('cgs4')
@@ -32,9 +42,33 @@ class ObservationCGS4(ObservationUKIRT):
         if filter == '?:?':
             filter = None
 
-        # TODO split off ND / prism / pol suffix ?
+        self.__pol = False
+        self.__prism = False
+
+        if filter is None:
+            pass
+
+        elif filter.endswith('+ND'):
+            filter = filter[:-3]
+
+        elif filter.endswith('+prism'):
+            filter = filter[:-6]
+            self.__prism = True
+
+        elif filter.endswith('+pol'):
+            # Note 'POLARISE' header is useless, it only contains false or junk.
+            filter = filter[:-4]
+            self.__pol = True
+
+        if filter == 'open':
+            filter = None
 
         self.__filter = filter
+
+        instrument.keywords.append(keywordvalue('pol',
+                'true' if self.__pol else 'false'))
+        instrument.keywords.append(keywordvalue('prism',
+                'true' if self.__prism else 'false'))
 
         # Grating
 
@@ -47,6 +81,34 @@ class ObservationCGS4(ObservationUKIRT):
             instrument.keywords.append(keywordvalue('grating', grating))
 
         self.__grating = grating
+
+        self.__grating_order = headers[0]['GORDER']
+
+        instrument.keywords.append(keywordvalue('grating_order',
+                                                str(self.__grating_order)))
+
+        # Detector mode
+
+        if 'DET_MODE' in headers[0]:
+            mode = headers[0]['DET_MODE']
+        elif 'MODE' in headers[0]:
+            mode = headers[0]['MODE']
+        else:
+            mode = None
+
+        if mode is not None:
+            # We see some modes with and without underscore
+            mode = mode.replace('_', '')
+
+            instrument.keywords.append(keywordvalue('mode', mode))
+
+        # Detector
+
+        detector = normalize_detector_name(headers[0]['DETECTOR'])
+
+        if detector is not None:
+            instrument.keywords.append(keywordvalue('detector', detector))
+
 
     def get_spectral_wcs(self, headers):
         return None
