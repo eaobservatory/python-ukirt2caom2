@@ -1,8 +1,7 @@
 from datetime import datetime, timedelta
 
 from caom2 import Artifact, Chunk, \
-        Environment, Part, Plane, Proposal, \
-        SimpleObservation, Target, Telescope
+        Environment, Part, Plane, Target
 from caom2.caom2_enums import CalibrationLevel, ObservationIntentType
 from caom2.util.caom2_util import TypedList
 from caom2.wcs.caom2_axis import Axis
@@ -22,30 +21,11 @@ calibration_types = ('dark', 'flat', 'arc', 'sky',
                      'targetacq', 'bias', 'calibration')
 
 class ObservationUKIRT():
-    def __init__(self, date, obs_num, id_, project_id, project_info,
-                 geolocation, fits_format):
+    def __init__(self, caom2_obs, date, uri, fits_format):
+        self.caom2 = caom2_obs
         self.date = datetime.strptime(date, '%Y%m%d')
+        self.uri = uri
         self.fits_format = fits_format
-
-        self.uri = 'ad:UKIRT/' + id_ + ('.fits' if fits_format else '.sdf')
-
-        # Construct CAOM2 object with basic identifying information.
-
-        self.caom2 = SimpleObservation('UKIRT', id_)
-
-        self.caom2.sequence_number = obs_num
-        self.caom2.telescope = Telescope('UKIRT', *geolocation)
-
-        if project_id is not None:
-            proposal = Proposal(project_id)
-
-            if project_info is not None:
-                if project_info.title is not None:
-                    proposal.title = project_info.title
-                if project_info.pi is not None:
-                    proposal.pi  = project_info.pi
-
-            self.caom2.proposal = proposal
 
         # Useful data to cache during the ingestion process
 

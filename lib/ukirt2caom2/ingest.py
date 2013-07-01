@@ -3,6 +3,7 @@ from os import makedirs
 from os.path import exists, join, splitext
 from sys import stdout
 
+from caom2 import Proposal, SimpleObservation, Telescope
 from caom2.xml.caom2_observation_writer import ObservationWriter
 
 from ukirt2caom2 import IngestionError
@@ -47,11 +48,23 @@ class IngestRaw:
 
             obs_date = doc['utdate'] if date is None else date
 
+            # Construct CAOM2 object with basic identifying information.
+
+            id_ = splitext(filename)[0]
+            fits_format = filename.endswith('.fits')
+
+            uri = 'ad:UKIRT/' + id_ + ('.fits' if fits_format else '.sdf')
+
+            caom2_obs = SimpleObservation('UKIRT', id_)
+            caom2_obs.telescope = Telescope('UKIRT', *self.geo)
+            caom2_obs.sequence_number = doc['obs'] if obs_num is None else obs_num
+
+            # Ingest the data into the CAOM2 object
+
             try:
                 observation = self.ingest_observation(instrument,
-                    obs_date,
-                    doc['obs'] if obs_num is None else obs_num,
-                    doc['headers'], filename, translated)
+                    caom2_obs, obs_date,
+                    uri, fits_format, doc['headers'], translated)
 
                 if dump:
                     observation.write(self.writer, stdout)
@@ -60,7 +73,7 @@ class IngestRaw:
                     obs_dir = join(out_dir, instrument, obs_date)
                     if not exists(obs_dir):
                         makedirs(obs_dir)
-                    with open(join(obs_dir, splitext(filename)[0] + '.xml'),
+                    with open(join(obs_dir, id_ + '.xml'),
                               'w') as f:
                         observation.write(self.writer, f)
 
@@ -70,8 +83,8 @@ class IngestRaw:
 
         return num_errors
 
-    def ingest_observation(self, instrument, date, obs_num, headers,
-                           filename, translated):
+    def ingest_observation(self, instrument, caom2_obs, date,
+                           uri, fits_format, headers, translated):
         # Collect project information.
 
         project_id = valid_project_code(headers[0].get('PROJECT', None))
@@ -86,14 +99,24 @@ class IngestRaw:
             if project_info is None:
                 project_info = self.prop.project_info(project_id)
 
+        # Add general information to the CAOM2 object
+
+        if project_id is not None:
+            proposal = Proposal(project_id)
+
+            if project_info is not None:
+                if project_info.title is not None:
+                    proposal.title = project_info.title
+                if project_info.pi is not None:
+                    proposal.pi  = project_info.pi
+
+            caom2_obs.proposal = proposal
+
         # Construct instrument-specific observation object.
 
         observation = instrument_classes[instrument](
-                date, obs_num,
-                splitext(filename)[0],
-                project_id, project_info,
-                self.geo,
-                filename.endswith('.fits'))
+                caom2_obs, date,
+                uri, fits_format)
 
         observation.ingest(headers, translated)
 
