@@ -60,7 +60,7 @@ class ObservationCGS3(ObservationUKIRT):
 
         self.__chopper = headers[0]['C3CHOPPR'].lower()
 
-        krypton = ('arc', 'kr', 'krypton', 'kr_lamp', 'lamp')
+        krypton = ('arc', 'kr', 'krypton', 'krpton', 'kr_lamp', 'lamp')
 
         object = headers[0]['OBJECT']
 
