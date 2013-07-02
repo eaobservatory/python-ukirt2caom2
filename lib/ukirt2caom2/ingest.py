@@ -1,9 +1,11 @@
+from io import BytesIO
 from logging import getLogger
 from os import makedirs
 from os.path import exists, join, splitext
 from sys import stdout
 
 from caom2 import Proposal, SimpleObservation, Telescope
+from caom2.xml.caom2_observation_reader import ObservationReader
 from caom2.xml.caom2_observation_writer import ObservationWriter
 
 from ukirt2caom2 import IngestionError
@@ -27,7 +29,8 @@ class IngestRaw:
         self.omp = OMP(password=staff_password)
         self.prop = Proposals()
         self.db = HeaderDB()
-        self.writer = ObservationWriter()
+        self.reader = ObservationReader(True)
+        self.writer = ObservationWriter(True)
         self.translator = Translator()
 
     def __call__(self, instrument, date=None, obs_num=None, out_dir=None,
@@ -48,14 +51,28 @@ class IngestRaw:
 
             obs_date = doc['utdate'] if date is None else date
 
-            # Construct CAOM2 object with basic identifying information.
-
             id_ = splitext(filename)[0]
             fits_format = filename.endswith('.fits')
 
+            if out_dir is not None:
+                obs_dir = join(out_dir, instrument, obs_date)
+                if not exists(obs_dir):
+                    makedirs(obs_dir)
+                obs_file = join(obs_dir, id_ + '.xml')
+
+            else:
+                obs_file = None
+
+            # Construct CAOM2 object with basic identifying information.
+
             uri = 'ad:UKIRT/' + id_ + ('.fits' if fits_format else '.sdf')
 
-            caom2_obs = SimpleObservation('UKIRT', id_)
+            if obs_file is not None and exists(obs_file):
+                caom2_obs = self.reader.read(obs_file)
+
+            else:
+                caom2_obs = SimpleObservation('UKIRT', id_)
+
             caom2_obs.telescope = Telescope('UKIRT', *self.geo)
             caom2_obs.sequence_number = doc['obs'] if obs_num is None else obs_num
 
@@ -69,12 +86,8 @@ class IngestRaw:
                 if dump:
                     observation.write(self.writer, stdout)
 
-                if out_dir is not None:
-                    obs_dir = join(out_dir, instrument, obs_date)
-                    if not exists(obs_dir):
-                        makedirs(obs_dir)
-                    with open(join(obs_dir, id_ + '.xml'),
-                              'w') as f:
+                if obs_file is not None:
+                    with open(obs_file, 'w') as f:
                         observation.write(self.writer, f)
 
             except IngestionError as e:
