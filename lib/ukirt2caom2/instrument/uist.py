@@ -54,6 +54,11 @@ class ObservationUIST(ObservationUKIRT):
 
         # Lens
         lens = headers[0]['CAMLENS']
+
+        # Header has a mixture of float and string values
+        if type(lens) is not str:
+            lens = str(lens)
+
         if lens != '':
             instrument.keywords.append(keywordvalue('lens', lens.lower()))
 
@@ -69,19 +74,19 @@ class ObservationUIST(ObservationUKIRT):
         if grism == '':
             grism = None
 
-        if grism.endswith('+pol'):
-            grism = grism[:-4]
-
-            if not pol:
-                logger.warning('Grism has +pol suffix but polarise is false')
-
-        elif grism.endswith('+ifu'):
-            grism = grism[:-4]
-
-            if camera != 'ifu':
-                logger.warning('Grism has +ifu suffix outside ifu mode')
-
         if grism is not None:
+            if grism.endswith('+pol'):
+                grism = grism[:-4]
+
+                if not pol:
+                    logger.warning('Grism has +pol suffix but polarise is false')
+
+            elif grism.endswith('+ifu'):
+                grism = grism[:-4]
+
+                if camera != 'ifu':
+                    logger.warning('Grism has +ifu suffix outside ifu mode')
+
             instrument.keywords.append(keywordvalue('grism', grism))
 
         self.__grism = grism
