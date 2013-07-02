@@ -127,7 +127,11 @@ class ObservationUKIRT():
         self.caom2.environment = environment
 
     def ingest_plane(self, headers, translated):
-        plane = Plane('raw')
+        plane = self.caom2.planes.get('raw', None)
+        if plane is None:
+            plane = Plane('raw')
+            self.caom2.planes.clear()
+            self.caom2.planes['raw'] = plane
 
         plane.calibration_level = CalibrationLevel.RAW_STANDARD \
             if self.fits_format else CalibrationLevel.RAW_INSTRUMENT
@@ -141,26 +145,33 @@ class ObservationUKIRT():
         plane.meta_release = release
         plane.data_release = release
 
-        artifact = self.ingest_artifact(headers, translated)
+        artifact = self.ingest_artifact(plane, headers, translated)
 
-        plane.artifacts[self.uri] = artifact
+    def ingest_artifact(self, plane, headers, translated):
+        artifact = plane.artifacts.get(self.uri, None)
+        if artifact is None:
+            artifact = Artifact(self.uri)
+            plane.artifacts.clear()
+            plane.artifacts[self.uri] = artifact
 
-        self.caom2.planes['raw'] = plane
+        self.ingest_parts(artifact, headers, translated)
 
-    def ingest_artifact(self, headers, translated):
-        artifact = Artifact(self.uri)
-
-        for part in self.ingest_parts(headers, translated):
-            artifact.parts[part.name] = part
-
-        return artifact
-
-    def ingest_parts(self, headers, translated):
+    def ingest_parts(self, artifact, headers, translated):
         # We only have FITS files for UFTI and we don't appear to
         # have any with multiple extensions.
-        part = Part('fits' if self.fits_format else 'ndf')
+        part_name = 'fits' if self.fits_format else 'ndf'
+        part = artifact.parts.get(part_name, None)
+        if part is None:
+            part = Part(part_name)
+            artifact.parts.clear()
+            artifact.parts[part_name] = part
 
-        chunk = Chunk()
+        if len(part.chunks) == 1:
+            chunk = part.chunks[0]
+
+        else:
+            chunk = Chunk()
+            part.chunks = TypedList((Chunk,), chunk)
 
         if 'DATE-OBS' in headers[0] and 'DATE-END' in headers[0]:
             date_start = self.parse_date(headers[0]['DATE-OBS'])
@@ -185,10 +196,6 @@ class ObservationUKIRT():
         polarization = self.get_polarization_wcs(headers)
         if polarization is not None:
             chunk.polarization = polarization
-
-        part.chunks = TypedList((Chunk,), chunk)
-
-        return [part]
 
     def parse_date(self, date_str):
         if date_str == '':
