@@ -26,11 +26,11 @@ class ObservationUIST(ObservationUKIRT):
         self.__camera = camera
 
         if camera is not None:
-            instrument.keywords.append(keywordvalue('camera', camera))
+            instrument.keywords.append(keywordvalue('mode', camera))
 
         # Detector mode
         mode = headers[0]['DET_MODE'].lower()
-        instrument.keywords.append(keywordvalue('mode', mode))
+        instrument.keywords.append(keywordvalue('detector_mode', mode))
 
         # Readout mode
         readout = headers[0].get('READOUT', None)

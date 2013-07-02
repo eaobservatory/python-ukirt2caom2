@@ -48,14 +48,14 @@ class ObservationIRCAM(ObservationUKIRT):
 
         mode = headers[0]['MODE'].lower()
 
-        instrument.keywords.append(keywordvalue('mode', mode))
+        instrument.keywords.append(keywordvalue('detector_mode', mode))
 
         # Speed
 
         if 'SPD_GAIN' in headers[0]:
             speed = headers[0]['SPD_GAIN'].lower()
 
-            instrument.keywords.append(keywordvalue('speed', speed))
+            instrument.keywords.append(keywordvalue('speed_gain', speed))
 
         # Detector
 

@@ -19,10 +19,10 @@ class ObservationMichelle(ObservationUKIRT):
         # Detector mode
 
         if 'DETMODE' in headers[0]:
-            instrument.keywords.append(keywordvalue('mode',
+            instrument.keywords.append(keywordvalue('detector_mode',
                                        headers[0]['DETMODE'].lower()))
         elif 'DET_MODE' in headers[0]:
-            instrument.keywords.append(keywordvalue('mode',
+            instrument.keywords.append(keywordvalue('detector_mode',
                                        headers[0]['DET_MODE'].lower()))
 
         # Camera mode: imaging / spectroscopy / targetAcq
@@ -40,7 +40,7 @@ class ObservationMichelle(ObservationUKIRT):
             camera = None
 
         if camera is not None:
-            instrument.keywords.append(keywordvalue('camera', camera))
+            instrument.keywords.append(keywordvalue('mode', camera))
 
         self.__camera = camera
 

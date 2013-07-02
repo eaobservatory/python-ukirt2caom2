@@ -91,7 +91,7 @@ class ObservationUFTI(ObservationUKIRT):
         if 'MODE' in headers[0]:
             mode = clean_header(headers[0]['MODE']).lower()
 
-            instrument.keywords.append(keywordvalue('mode', mode))
+            instrument.keywords.append(keywordvalue('detector_mode', mode))
 
         if 'FILTER' in headers[0]:
             (filter, pol) = parse_filter(clean_header(headers[0]['FILTER']))
@@ -110,7 +110,7 @@ class ObservationUFTI(ObservationUKIRT):
         if 'SPD_GAIN' in headers[0]:
             speed = clean_header(headers[0]['SPD_GAIN']).lower()
 
-            instrument.keywords.append(keywordvalue('speed', speed))
+            instrument.keywords.append(keywordvalue('speed_gain', speed))
 
         if self.obstype is not None:
             instrument.keywords.append(keywordvalue('type', self.obstype))

@@ -90,7 +90,7 @@ class ObservationCGS4(ObservationUKIRT):
             # We see some modes with and without underscore
             mode = mode.replace('_', '').lower()
 
-            instrument.keywords.append(keywordvalue('mode', mode))
+            instrument.keywords.append(keywordvalue('detector_mode', mode))
 
         # Detector
 
