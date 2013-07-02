@@ -16,6 +16,9 @@ class ObservationUIST(ObservationUKIRT):
 
         self.caom2.instrument = instrument
 
+        if self.obstype is not None:
+            instrument.keywords.append(keywordvalue('observation_type', self.obstype))
+
         # Camera mode: ifu / imaging / spectroscopy
         camera = headers[0]['INSTMODE']
 

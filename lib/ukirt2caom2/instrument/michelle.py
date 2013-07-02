@@ -16,6 +16,9 @@ class ObservationMichelle(ObservationUKIRT):
 
         self.caom2.instrument = instrument
 
+        if self.obstype is not None:
+            instrument.keywords.append(keywordvalue('observation_type', self.obstype))
+
         # Detector mode
 
         if 'DETMODE' in headers[0]:
