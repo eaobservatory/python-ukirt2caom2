@@ -33,8 +33,8 @@ class IngestRaw:
         self.writer = ObservationWriter(True)
         self.translator = Translator()
 
-    def __call__(self, instrument, date=None, obs_num=None, out_dir=None,
-                 dump=False):
+    def __call__(self, instrument, date=None, obs_num=None,
+                 use_repo=False, out_dir=None, dump=False):
         num_errors = 0
 
         for doc in self.db.find(instrument, date, obs_num):
@@ -54,27 +54,38 @@ class IngestRaw:
             id_ = splitext(filename)[0]
             fits_format = filename.endswith('.fits')
 
+            uri = 'ad:UKIRT/' + filename
+            caom2_uri = 'caom2:UKIRT/' + id_
+            caom2_obs = None
+
+            # Attempt to fetch observation from the CAOM-2 repository.
+
+            if use_repo:
+                logger.debug('Getting from CAOM-2: ' + caom2_uri)
+                pass
+
+            # Check the file directory exists, and if we didn't already find
+            # the observation, attempt to read the previous version from a
+            # file.
+
             if out_dir is not None:
                 obs_dir = join(out_dir, instrument, obs_date)
+                obs_file = join(obs_dir, id_ + '.xml')
                 if not exists(obs_dir):
                     makedirs(obs_dir)
-                obs_file = join(obs_dir, id_ + '.xml')
 
-            else:
-                obs_file = None
+                if caom2_obs is None and exists(obs_file):
+                    logger.debug('Reading file: ' + obs_file)
+                    caom2_obs = self.reader.read(obs_file)
 
-            # Construct CAOM2 object with basic identifying information.
+            # Otherwise construct CAOM-2 object with basic information.
 
-            uri = 'ad:UKIRT/' + id_ + ('.fits' if fits_format else '.sdf')
-
-            if obs_file is not None and exists(obs_file):
-                caom2_obs = self.reader.read(obs_file)
-
-            else:
+            if caom2_obs is None:
+                logger.debug('Constructing new CAOM-2 object')
                 caom2_obs = SimpleObservation('UKIRT', id_)
 
-            caom2_obs.telescope = Telescope('UKIRT', *self.geo)
-            caom2_obs.sequence_number = doc['obs'] if obs_num is None else obs_num
+                caom2_obs.sequence_number = doc['obs'] if obs_num is None \
+                                                       else obs_num
 
             # Ingest the data into the CAOM2 object
 
@@ -86,9 +97,18 @@ class IngestRaw:
                 if dump:
                     observation.write(self.writer, stdout)
 
-                if obs_file is not None:
+                if out_dir is not None:
+                    logger.debug('Writing file: ' + obs_file)
                     with open(obs_file, 'w') as f:
                         observation.write(self.writer, f)
+
+                if use_repo:
+                    if not in_repo:
+                        logger.debug('Putting to CAOM-2: ' + caom2_uri)
+                        pass
+                    else:
+                        logger.debug('Updating in CAOM-2: ' + caom2_uri)
+                        pass
 
             except IngestionError as e:
                 logger.error('Ingestion error: ' + e.message)
@@ -98,6 +118,10 @@ class IngestRaw:
 
     def ingest_observation(self, instrument, caom2_obs, date,
                            uri, fits_format, headers, translated):
+        # Set telescope.
+
+        caom2_obs.telescope = Telescope('UKIRT', *self.geo)
+
         # Collect project information.
 
         project_id = valid_project_code(headers[0].get('PROJECT', None))
