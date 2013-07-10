@@ -24,6 +24,8 @@ if __name__ == '__main__':
                         default=None)
     parser.add_argument('--print', dest='dump', required=False,
                         default=False, action='store_true')
+    parser.add_argument('--verbose', '-v', required=False,
+                        default=False, action='store_true')
 
     args = parser.parse_args()
 
@@ -39,7 +41,7 @@ if __name__ == '__main__':
     else:
         raise Exception('No output directory specified outside of dry-run mode')
 
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
     logger = logging.getLogger()
 
     logger.info('Initializing ingestion')
