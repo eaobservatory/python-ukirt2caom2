@@ -8,6 +8,8 @@ from caom2 import Proposal, SimpleObservation, Telescope
 from caom2.xml.caom2_observation_reader import ObservationReader
 from caom2.xml.caom2_observation_writer import ObservationWriter
 
+from caom2repoClient.caom2repoClient import CAOM2RepoClient
+
 from ukirt2caom2 import IngestionError
 from ukirt2caom2.fixup_headers import fixup_headers
 from ukirt2caom2.geolocation import ukirt_geolocation
@@ -32,6 +34,7 @@ class IngestRaw:
         self.reader = ObservationReader(True)
         self.writer = ObservationWriter(True)
         self.translator = Translator()
+        self.client = CAOM2RepoClient()
 
     def __call__(self, instrument, date=None, obs_num=None,
                  use_repo=False, out_dir=None, dump=False):
@@ -56,13 +59,23 @@ class IngestRaw:
 
             uri = 'ad:UKIRT/' + filename
             caom2_uri = 'caom2:UKIRT/' + id_
+            in_repo = False
             caom2_obs = None
 
             # Attempt to fetch observation from the CAOM-2 repository.
 
             if use_repo:
                 logger.debug('Getting from CAOM-2: ' + caom2_uri)
-                pass
+                xml = self.client.get_xml(caom2_uri)
+
+                if xml is None:
+                    in_repo = False
+
+                else:
+                    in_repo = True
+
+                    with BytesIO(xml) as f:
+                        caom2_obs = self.reader.read(f)
 
             # Check the file directory exists, and if we didn't already find
             # the observation, attempt to read the previous version from a
@@ -102,13 +115,23 @@ class IngestRaw:
                     with open(obs_file, 'w') as f:
                         self.writer.write(observation.caom2, f)
 
+                # Try to send to CAOM-2 last in case we need to
+                # raise an exception.
+
                 if use_repo:
+                    with BytesIO() as f:
+                        self.writer.write(observation.caom2, f)
+                        xml = f.getvalue()
+
                     if not in_repo:
                         logger.debug('Putting to CAOM-2: ' + caom2_uri)
-                        pass
+                        status = self.client.put_xml(caom2_uri, xml)
                     else:
                         logger.debug('Updating in CAOM-2: ' + caom2_uri)
-                        pass
+                        status = self.client.update_xml(caom2_uri, xml)
+
+                    if not status:
+                        raise IngestionError('Failed to send to CAOM-2 repository')
 
             except IngestionError as e:
                 logger.error('Ingestion error: ' + e.message)
