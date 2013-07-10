@@ -95,12 +95,12 @@ class IngestRaw:
                     uri, fits_format, doc['headers'], translated)
 
                 if dump:
-                    observation.write(self.writer, stdout)
+                    self.writer.write(observation.caom2, stdout)
 
                 if out_dir is not None:
                     logger.debug('Writing file: ' + obs_file)
                     with open(obs_file, 'w') as f:
-                        observation.write(self.writer, f)
+                        self.writer.write(observation.caom2, f)
 
                 if use_repo:
                     if not in_repo:

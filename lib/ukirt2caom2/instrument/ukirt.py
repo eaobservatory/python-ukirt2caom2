@@ -31,9 +31,6 @@ class ObservationUKIRT():
 
         self.obstype = None
 
-    def write(self, writer, out):
-        writer.write(self.caom2, out)
-
     def ingest(self, headers, translated):
         # Go through each ingestion step, allowing each to be
         # over-ridden by sub-classes.  Note that the order
