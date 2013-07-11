@@ -81,6 +81,8 @@ class ObservationCGS3(ObservationUKIRT):
 
         # Add the data to the CAOM-2 object
 
+        self.caom2.obs_type = type
+
         if type == 'object':
             self.caom2.intent = ObservationIntentType.SCIENCE
 
