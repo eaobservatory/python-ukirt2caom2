@@ -214,6 +214,10 @@ class ObservationUFTI(ObservationUKIRT):
             logger.warning('Pol filter present without WPLANGLE')
             return None
 
+        # For now, abort because CAOM-2 is only accepting STOKES
+        # as the CTYPE.
+        return None
+
         angle = headers[0]['WPLANGLE']
 
         # The Wells 1981 FITS paper defines CTYPE ANGLE as an
