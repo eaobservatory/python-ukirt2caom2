@@ -35,6 +35,7 @@ class IngestRaw:
         self.writer = ObservationWriter(True)
         self.translator = Translator()
         self.client = CAOM2RepoClient()
+        self.project_cache = {}
 
     def __call__(self, instrument, date=None, obs_num=None,
                  use_repo=False, out_dir=None, dump=False):
@@ -153,11 +154,18 @@ class IngestRaw:
             project_info = None
 
         else:
-            project_id = project_id
-            project_info = self.omp.project_info(project_id)
+            if project_id in self.project_cache:
+                project_info = self.project_cache[project_id]
 
-            if project_info is None:
-                project_info = self.prop.project_info(project_id)
+            else:
+                logger.debug('Fetching project {} information from OMP'.format(project_id))
+                project_info = self.omp.project_info(project_id)
+
+                if project_info is None:
+                    logger.debug('Fetching project {} information from file'.format(project_id))
+                    project_info = self.prop.project_info(project_id)
+
+                self.project_cache[project_id] = project_info
 
         # Add general information to the CAOM2 object
 
