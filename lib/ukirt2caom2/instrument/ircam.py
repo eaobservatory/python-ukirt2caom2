@@ -72,6 +72,6 @@ class ObservationIRCAM(ObservationUKIRT):
         return None
 
     def get_polarization_wcs(self, headers):
-            return None
+        return None
 
 instrument_classes['ircam'] = ObservationIRCAM

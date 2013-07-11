@@ -99,7 +99,6 @@ class ObservationCGS4(ObservationUKIRT):
         if detector is not None:
             instrument.keywords.append(keywordvalue('detector', detector))
 
-
     def get_spectral_wcs(self, headers):
         return None
 
@@ -107,6 +106,6 @@ class ObservationCGS4(ObservationUKIRT):
         return None
 
     def get_polarization_wcs(self, headers):
-            return None
+        return None
 
 instrument_classes['cgs4'] = ObservationCGS4
