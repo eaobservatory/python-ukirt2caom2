@@ -168,7 +168,7 @@ class IngestRaw:
                 if project_info.title is not None:
                     proposal.title = project_info.title
                 if project_info.pi is not None:
-                    proposal.pi  = project_info.pi
+                    proposal.pi_name  = project_info.pi
 
             caom2_obs.proposal = proposal
 
