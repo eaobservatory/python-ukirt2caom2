@@ -17,9 +17,6 @@ class ObservationCGS3(ObservationUKIRT):
 
         self.caom2.instrument = instrument
 
-        if self.obstype is not None:
-            instrument.keywords.append(keywordvalue('observation_type', self.obstype))
-
         # Mode just distinguishes spectroscopy / spectropolarimetry.
         # Note that 'C3POL' header always agrees with this so we need
         # only read one.

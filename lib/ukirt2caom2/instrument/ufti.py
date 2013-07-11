@@ -112,9 +112,6 @@ class ObservationUFTI(ObservationUKIRT):
 
             instrument.keywords.append(keywordvalue('speed_gain', speed))
 
-        if self.obstype is not None:
-            instrument.keywords.append(keywordvalue('observation_type', self.obstype))
-
     def get_spectral_wcs(self, headers):
         # TODO deal with Fabry Perot thing.
 
