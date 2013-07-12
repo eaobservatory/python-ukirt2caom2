@@ -17,7 +17,7 @@ class HeaderDB:
         if obs_num is not None:
             prototype['obs'] = obs_num
 
-        cursor = self.db[instrument].find(prototype)
+        cursor = self.db[instrument].find(prototype, timeout=False)
 
         if cursor.count() == 0:
             raise HeaderDBError('No headers found')
