@@ -147,6 +147,7 @@ class ObservationUKIRT():
         else:
             release = self.date.replace(year=self.date.year + 1)
 
+        self.caom2.meta_release = release
         plane.meta_release = release
         plane.data_release = release
 
