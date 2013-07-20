@@ -76,7 +76,11 @@ class IngestRaw:
                     in_repo = True
 
                     with BytesIO(xml) as f:
-                        caom2_obs = self.reader.read(f)
+                        try:
+                            caom2_obs = self.reader.read(f)
+                        except TypeError as e:
+                            logger.error('Failed to read CAOM-2 XML from repository: ' +
+                                         e.message)
 
             # Check the file directory exists, and if we didn't already find
             # the observation, attempt to read the previous version from a
@@ -90,7 +94,11 @@ class IngestRaw:
 
                 if caom2_obs is None and exists(obs_file):
                     logger.debug('Reading file: ' + obs_file)
-                    caom2_obs = self.reader.read(obs_file)
+                    try:
+                        caom2_obs = self.reader.read(obs_file)
+                    except TypeError as e:
+                        logger.error('Failed to read CAOM-2 XML from disk: ' +
+                                     e.message)
 
             # Otherwise construct CAOM-2 object with basic information.
 
