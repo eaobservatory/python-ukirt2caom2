@@ -49,6 +49,14 @@ class ObservationUKIRT():
 
         if 'OBJECT' in headers[0]:
             object = valid_object(headers[0]['OBJECT'])
+
+            # If the target name is the empty string then the CAOM-2 observation
+            # writer writes <caom2:name></caom2:name> and the reader fails
+            # to read it as it gets None as the child text and rejects
+            # it for not being a string.
+            if object == '':
+                return
+
             target = Target(object)
 
             if (self.caom2.intent == ObservationIntentType.SCIENCE and
