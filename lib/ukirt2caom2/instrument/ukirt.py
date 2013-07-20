@@ -31,6 +31,17 @@ class ObservationUKIRT():
 
         self.obstype = None
 
+        # Compute release date
+
+        if self.date.month == 2 and self.date.day == 29:
+            release = self.date.replace(day=28, year=self.date.year + 1)
+
+        else:
+            release = self.date.replace(year=self.date.year + 1)
+
+        caom2_obs.meta_release = release
+        self.release_date = release
+
     def ingest(self, headers, translated):
         # Go through each ingestion step, allowing each to be
         # over-ridden by sub-classes.  Note that the order
@@ -141,15 +152,8 @@ class ObservationUKIRT():
         plane.calibration_level = CalibrationLevel.RAW_STANDARD \
             if self.fits_format else CalibrationLevel.RAW_INSTRUMENT
 
-        if self.date.month == 2 and self.date.day == 29:
-            release = self.date.replace(day=28, year=self.date.year + 1)
-
-        else:
-            release = self.date.replace(year=self.date.year + 1)
-
-        self.caom2.meta_release = release
-        plane.meta_release = release
-        plane.data_release = release
+        plane.meta_release = self.release_date
+        plane.data_release = self.release_date
 
         artifact = self.ingest_artifact(plane, headers, translated)
 
@@ -159,6 +163,8 @@ class ObservationUKIRT():
             artifact = Artifact(self.uri)
             plane.artifacts.clear()
             plane.artifacts[self.uri] = artifact
+
+        artifact.meta_release = self.release_date
 
         self.ingest_parts(artifact, headers, translated)
 
@@ -172,12 +178,16 @@ class ObservationUKIRT():
             artifact.parts.clear()
             artifact.parts[part_name] = part
 
+        part.meta_release = self.release_date
+
         if len(part.chunks) == 1:
             chunk = part.chunks[0]
 
         else:
             chunk = Chunk()
             part.chunks = TypedList((Chunk,), chunk)
+
+        chunk.meta_release = self.release_date
 
         if 'DATE-OBS' in headers[0] and 'DATE-END' in headers[0]:
             date_start = self.parse_date(headers[0]['DATE-OBS'])
