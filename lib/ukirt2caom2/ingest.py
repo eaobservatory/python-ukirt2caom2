@@ -81,6 +81,9 @@ class IngestRaw:
                         except TypeError as e:
                             logger.error('Failed to read CAOM-2 XML from repository: ' +
                                          e.message)
+                            logger.debug('Attempting to delete unreadable entry.')
+                            self.client.remove(caom2_uri)
+                            in_repo = False
 
             # Check the file directory exists, and if we didn't already find
             # the observation, attempt to read the previous version from a
