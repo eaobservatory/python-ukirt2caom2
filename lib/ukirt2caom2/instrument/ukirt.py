@@ -164,8 +164,6 @@ class ObservationUKIRT():
             plane.artifacts.clear()
             plane.artifacts[self.uri] = artifact
 
-        artifact.meta_release = self.release_date
-
         self.ingest_parts(artifact, headers, translated)
 
     def ingest_parts(self, artifact, headers, translated):
@@ -178,16 +176,12 @@ class ObservationUKIRT():
             artifact.parts.clear()
             artifact.parts[part_name] = part
 
-        part.meta_release = self.release_date
-
         if len(part.chunks) == 1:
             chunk = part.chunks[0]
 
         else:
             chunk = Chunk()
             part.chunks = TypedList((Chunk,), chunk)
-
-        chunk.meta_release = self.release_date
 
         if 'DATE-OBS' in headers[0] and 'DATE-END' in headers[0]:
             date_start = self.parse_date(headers[0]['DATE-OBS'])
