@@ -196,8 +196,8 @@ class ObservationUKIRT():
             if date_start is not None and date_end is not None:
                 time = CoordAxis1D(Axis('TIME', 'd'))
                 time.range = CoordRange1D(
-                        RefCoord(0.5, date_start),
-                        RefCoord(1.5, date_end))
+                        RefCoord(0.5, utc2mjd(date_start)),
+                        RefCoord(1.5, utc2mjd(date_end)))
 
                 chunk.time = TemporalWCS(time, 'UTC')
 
@@ -221,9 +221,7 @@ class ObservationUKIRT():
             date_str = date_str[:-1]
 
         try:
-            date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S')
-
-            return utc2mjd(date)
+            return datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S')
 
         except ValueError:
             return None
