@@ -8,8 +8,8 @@ from ukirt2caom2.coord import CoordFK5
 from ukirt2caom2.instrument import instrument_classes
 from ukirt2caom2.instrument.ukirt import ObservationUKIRT
 from ukirt2caom2.util import clean_header
+from ukirt2caom2.wcs_util import to_coord2D
 from caom2.wcs.caom2_axis import Axis
-from caom2.wcs.caom2_coord2d import Coord2D
 from caom2.wcs.caom2_coord_axis1d import CoordAxis1D
 from caom2.wcs.caom2_coord_axis2d import CoordAxis2D
 from caom2.wcs.caom2_coord_polygon2d import CoordPolygon2D
@@ -75,12 +75,6 @@ def parse_filter(value):
     else:
         logger.warning('Filter ' + value + ' is not recognised')
         return (None, pol)
-
-def to_coord2D(coord, xpix=0.5, ypix=1.5):
-    (ra, dec) = coord.deg()
-
-    return Coord2D(RefCoord(float(xpix), ra),
-                   RefCoord(float(ypix), dec))
 
 class ObservationUFTI(ObservationUKIRT):
     def ingest_instrument(self, headers):
