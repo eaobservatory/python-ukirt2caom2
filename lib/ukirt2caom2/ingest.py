@@ -2,6 +2,7 @@ from io import BytesIO
 from logging import getLogger
 from os import makedirs
 from os.path import exists, join, splitext
+import re
 from sys import stdout
 
 from caom2 import Proposal, SimpleObservation, Telescope
@@ -25,6 +26,8 @@ from SECRET import staff_password
 
 logger = getLogger(__name__)
 
+valid_date = re.compile('^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\dZ?$')
+
 class IngestRaw:
     def __init__(self):
         self.geo = ukirt_geolocation()
@@ -47,13 +50,27 @@ class IngestRaw:
             filename = doc['filename']
             logger.info('Ingesting observation ' + filename)
 
-            try:
-                translated = self.translator.translate(doc['headers'][0])
-            except TranslationError as e:
-                logger.warning('Failed to translate headers: ' + e.message)
-                translated = {}
-
             obs_date = doc['utdate'] if date is None else date
+
+            translated = {}
+            if instrument not in ('cgs3',):
+                try:
+                    # Take a copy of the headers and insert fake values for those
+                    # headers which we don't need but which cause HdrTrans to
+                    # abort its translation.
+                    header_copy = doc['headers'][0].copy()
+                    obs_date_fake = '{}-{}-{}T00:00:00'.format(obs_date[0:4],
+                                                obs_date[4:6], obs_date[6:8])
+                    for date_field in ('DATE-OBS', 'DATE-END'):
+                        if date_field not in header_copy or not valid_date.match(header_copy[date_field]):
+                            logger.warning('Replacing invalid {} "{}" with "{}"'.format(
+                                           date_field, header_copy.get(date_field, 'NONE'), obs_date_fake))
+                            header_copy[date_field] = obs_date_fake
+
+                    translated = self.translator.translate(header_copy)
+
+                except TranslationError as e:
+                    logger.warning('Failed to translate headers: ' + e.message)
 
             id_ = splitext(filename)[0]
             fits_format = filename.endswith('.fits')
