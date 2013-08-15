@@ -5,13 +5,18 @@ from caom2 import Instrument
 from jcmt2caom2.raw import keywordvalue
 
 from ukirt2caom2 import IngestionError
+from ukirt2caom2.coord import CoordFK5
 from ukirt2caom2.instrument import instrument_classes
 from ukirt2caom2.instrument.ukirt import ObservationUKIRT
 from ukirt2caom2.util import clean_header
+from ukirt2caom2.wcs_util import to_coord2D
 from caom2.wcs.caom2_axis import Axis
 from caom2.wcs.caom2_coord_axis1d import CoordAxis1D
+from caom2.wcs.caom2_coord_axis2d import CoordAxis2D
+from caom2.wcs.caom2_coord_polygon2d import CoordPolygon2D
 from caom2.wcs.caom2_coord_range1d import CoordRange1D
 from caom2.wcs.caom2_ref_coord import RefCoord
+from caom2.wcs.caom2_spatial_wcs import SpatialWCS
 from caom2.wcs.caom2_spectral_wcs import SpectralWCS
 
 logger = getLogger(__name__)
@@ -139,7 +144,70 @@ class ObservationMichelle(ObservationUKIRT):
             return None
 
     def get_spatial_wcs(self, headers, translated):
-        return None
+        if self.obstype not in ('object', 'sky'):
+            return None
+
+        # Fetch data
+        rabase = translated.get('RA_BASE', None)
+        decbase = translated.get('DEC_BASE', None)
+        xref = translated.get('X_REFERENCE_PIXEL', None)
+        yref = translated.get('Y_REFERENCE_PIXEL', None)
+        rascale = translated.get('RA_SCALE', None)
+        decscale = translated.get('DEC_SCALE', None)
+        x1 = translated.get('X_LOWER_BOUND', None)
+        x2 = translated.get('X_UPPER_BOUND', None)
+        y1 = translated.get('Y_LOWER_BOUND', None)
+        y2 = translated.get('Y_UPPER_BOUND', None)
+
+        if None in (rabase, decbase, xref, yref, rascale, decscale,
+                x1, x2, y1, y2):
+            logger.error('Insufficient information for WCS')
+            return None
+
+        if type(rabase) is int:
+            rabase = float(rabase)
+        if type(decbase) is int:
+            decbase = float(decbase)
+
+        if any(map(lambda x: type(x) is not float, (rabase, decbase))):
+            logger.error('Non-float in WCS information: ' +
+                         str(rabase) + ', ' + str(decbase))
+            return None
+
+        # Convert to degrees, using checks taken from MICHELLE/_GET_PLATE_SCALE_
+        if rascale is None or decscale is None:
+            rascale = -0.2134 / 3600.0
+            decscale = 0.2134 / 3600.0
+        else:
+            if rascale > 0.0:
+                rascale *= -1.0
+            if not (headers[0]['CTYPE1'] == 'RA---TAN' and rascale < 1.0e-3):
+                rascale = float(rascale) / 3600.0
+                decscale = float(decscale) / 3600.0
+
+        if self.__camera == 'imaging':
+            # Create coordinates
+            base = CoordFK5(ra_deg=rabase, dec_deg=decbase)
+
+            box = CoordPolygon2D()
+            box.vertices.append(to_coord2D(base.offset(rascale * (x1 - xref), decscale * (y2 - yref)), x1, y2)) #TL
+            box.vertices.append(to_coord2D(base.offset(rascale * (x2 - xref), decscale * (y2 - yref)), x2, y2)) #TR
+            box.vertices.append(to_coord2D(base.offset(rascale * (x2 - xref), decscale * (y1 - yref)), x2, y1)) #BR
+            box.vertices.append(to_coord2D(base.offset(rascale * (x1 - xref), decscale * (y1 - yref)), x1, y1)) #BL
+
+            spatial_axes = CoordAxis2D(Axis('RA', 'deg'),
+                                       Axis('DEC', 'deg'))
+            spatial_axes.bounds = box
+
+            wcs = SpatialWCS(spatial_axes,
+                             coordsys='ICRS',
+                             equinox=2000.0)
+                      # TODO resolution=(arseconds, seeing/beam)
+
+            return wcs
+
+        else:
+            return None
 
     def get_polarization_wcs(self, headers):
         return None
