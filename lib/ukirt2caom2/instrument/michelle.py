@@ -8,6 +8,11 @@ from ukirt2caom2 import IngestionError
 from ukirt2caom2.instrument import instrument_classes
 from ukirt2caom2.instrument.ukirt import ObservationUKIRT
 from ukirt2caom2.util import clean_header
+from caom2.wcs.caom2_axis import Axis
+from caom2.wcs.caom2_coord_axis1d import CoordAxis1D
+from caom2.wcs.caom2_coord_range1d import CoordRange1D
+from caom2.wcs.caom2_ref_coord import RefCoord
+from caom2.wcs.caom2_spectral_wcs import SpectralWCS
 
 logger = getLogger(__name__)
 
@@ -111,7 +116,27 @@ class ObservationMichelle(ObservationUKIRT):
         self.__calpol = calpol
 
     def get_spectral_wcs(self, headers):
-        return None
+        if self.__camera == 'imaging':
+            if self.__filter is None:
+                logger.warning('Using default filter cut on and off')
+                (cut_on, cut_off, filter_name) = (8, 25, None) # From Michelle webpage
+            else:
+                (cut_on, cut_off, filter_name) = self.__filter
+
+            axis = CoordAxis1D(Axis('WAVE', 'm'))
+            axis.range = CoordRange1D(RefCoord(0.5, 1.0e-6 * cut_on),
+                                      RefCoord(1.5, 1.0e-6 * cut_off))
+
+            wcs = SpectralWCS(axis, 'TOPOCENT')
+            wcs.ssysobs = 'TOPOCENT'
+
+            if filter_name is not None:
+                wcs.bandpass_name = filter_name
+
+            return wcs
+
+        else:
+            return None
 
     def get_spatial_wcs(self, headers, translated):
         return None
