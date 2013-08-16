@@ -7,6 +7,11 @@ from ukirt2caom2 import IngestionError
 from ukirt2caom2.instrument import instrument_classes
 from ukirt2caom2.instrument.ukirt import ObservationUKIRT
 from ukirt2caom2.util import clean_header
+from caom2.wcs.caom2_axis import Axis
+from caom2.wcs.caom2_coord_axis1d import CoordAxis1D
+from caom2.wcs.caom2_coord_range1d import CoordRange1D
+from caom2.wcs.caom2_ref_coord import RefCoord
+from caom2.wcs.caom2_spectral_wcs import SpectralWCS
 
 logger = getLogger(__name__)
 
@@ -96,7 +101,8 @@ class ObservationUIST(ObservationUKIRT):
         if filter == '':
             filter = None
 
-        self.__filter = filter
+        self.__filter = uist_imaging_filters.get(filter,
+                (None, None, filter, None))
 
         # Grism
         grism = headers[0]['GRISM']
@@ -131,7 +137,36 @@ class ObservationUIST(ObservationUKIRT):
         self.__slit = slit
 
     def get_spectral_wcs(self, headers):
-        return None
+        (cut_on, cut_off, filter_name, wavelength) = self.__filter
+
+        if self.__camera == 'imaging':
+            if None in (cut_on, cut_off):
+                logger.warning('Using default filter cut on and off')
+                (cut_on, cut_off) = (1.0, 5.0) # From UIST webpage
+
+            axis = CoordAxis1D(Axis('WAVE', 'm'))
+            axis.range = CoordRange1D(RefCoord(0.5, 1.0e-6 * cut_on),
+                                      RefCoord(1.5, 1.0e-6 * cut_off))
+
+            wcs = SpectralWCS(axis, 'TOPOCENT')
+            wcs.ssysobs = 'TOPOCENT'
+
+            if filter_name is not None:
+                wcs.bandpass_name = filter_name
+
+            if wavelength is not None:
+                wcs.restwav = 1.0e-6 * wavelength
+
+            return wcs
+
+        elif self.__camera == 'ifu':
+            return None
+
+        elif self.__camera == 'spectroscopy':
+            return None
+
+        else:
+            return None
 
     def get_spatial_wcs(self, headers, translated):
         return None
