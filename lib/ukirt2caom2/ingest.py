@@ -41,8 +41,10 @@ class IngestRaw:
         self.project_cache = {}
 
     def __call__(self, instrument, date=None, obs_num=None,
-                 use_repo=False, out_dir=None, dump=False):
+                 use_repo=False, out_dir=None, dump=False,
+                 return_observations=False):
         num_errors = 0
+        all_obs = {}
 
         for doc in self.db.find(instrument, date, obs_num):
             document_to_ascii(doc)
@@ -136,6 +138,10 @@ class IngestRaw:
                     caom2_obs, obs_date,
                     uri, fits_format, doc['headers'], translated)
 
+                if return_observations:
+                        all_obs[(obs_date, caom2_obs.sequence_number)] = \
+                        (filename, observation, doc)
+
                 if dump:
                     self.writer.write(observation.caom2, stdout)
 
@@ -166,7 +172,10 @@ class IngestRaw:
                 logger.error('Ingestion error: ' + e.message)
                 num_errors += 1
 
-        return num_errors
+        if return_observations:
+            return all_obs
+        else:
+            return num_errors
 
     def ingest_observation(self, instrument, caom2_obs, date,
                            uri, fits_format, headers, translated):
