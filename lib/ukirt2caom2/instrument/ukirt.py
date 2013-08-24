@@ -20,7 +20,7 @@ c = 299792458.0
 calibration_types = ('dark', 'flat', 'arc', 'sky',
                      'targetacq', 'bias', 'calibration')
 
-class ObservationUKIRT():
+class ObservationUKIRT(object):
     def __init__(self, caom2_obs, date, uri, fits_format):
         self.caom2 = caom2_obs
         self.date = datetime.strptime(date, '%Y%m%d')
