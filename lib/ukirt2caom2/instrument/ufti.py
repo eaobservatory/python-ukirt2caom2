@@ -78,7 +78,7 @@ def parse_filter(value):
 
 class ObservationUFTI(ObservationUKIRT):
     def ingest_instrument(self, headers):
-        instrument = Instrument('ufti')
+        instrument = Instrument('UFTI')
 
         self.caom2.instrument = instrument
 

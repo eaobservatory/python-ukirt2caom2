@@ -45,7 +45,7 @@ def parse_filter(value):
 
 class ObservationMichelle(ObservationUKIRT):
     def ingest_instrument(self, headers):
-        instrument = Instrument('michelle')
+        instrument = Instrument('Michelle')
 
         self.caom2.instrument = instrument
 

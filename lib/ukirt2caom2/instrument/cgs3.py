@@ -13,7 +13,7 @@ logger = getLogger(__name__)
 
 class ObservationCGS3(ObservationUKIRT):
     def ingest_instrument(self, headers):
-        instrument = Instrument('cgs3')
+        instrument = Instrument('CGS3')
 
         self.caom2.instrument = instrument
 

@@ -49,7 +49,7 @@ uist_imaging_filters = {
 
 class ObservationUIST(ObservationUKIRT):
     def ingest_instrument(self, headers):
-        instrument = Instrument('uist')
+        instrument = Instrument('UIST')
 
         self.caom2.instrument = instrument
 
