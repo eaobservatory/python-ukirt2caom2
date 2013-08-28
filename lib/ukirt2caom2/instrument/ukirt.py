@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 from caom2 import Artifact, Chunk, \
         Environment, Part, Plane, Target
-from caom2.caom2_enums import CalibrationLevel, ObservationIntentType
+from caom2.caom2_enums import CalibrationLevel, ObservationIntentType, ProductType
 from caom2.util.caom2_util import TypedList
 from caom2.wcs.caom2_axis import Axis
 from caom2.wcs.caom2_coord_axis1d import CoordAxis1D
@@ -164,6 +164,11 @@ class ObservationUKIRT(object):
             plane.artifacts.clear()
             plane.artifacts[self.uri] = artifact
 
+        if self.caom2.intent == ObservationIntentType.SCIENCE:
+            artifact.product_type = ProductType.SCIENCE
+        else:
+            artifact.product_type = ProductType.CALIBRATIN
+
         self.ingest_parts(artifact, headers, translated)
 
     def ingest_parts(self, artifact, headers, translated):
@@ -182,6 +187,13 @@ class ObservationUKIRT(object):
         else:
             chunk = Chunk()
             part.chunks = TypedList((Chunk,), chunk)
+
+        if self.caom2.intent == ObservationIntentType.SCIENCE:
+            part.product_type = ProductType.SCIENCE
+            chunk.product_type = ProductType.SCIENCE
+        else:
+            part.product_type = ProductType.CALIBRATIN
+            chunk.product_type = ProductType.CALIBRATIN
 
         if 'DATE-OBS' in headers[0] and 'DATE-END' in headers[0]:
             date_start = self.parse_date(headers[0]['DATE-OBS'])
