@@ -61,7 +61,7 @@ for (alias, filter) in (
 
 class ObservationIRCAM(ObservationUKIRT):
     def ingest_instrument(self, headers):
-        instrument = Instrument('IRCAM')
+        instrument = Instrument('IRCAM3')
 
         self.caom2.instrument = instrument
 
