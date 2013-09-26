@@ -14,11 +14,14 @@ from jcmt2caom2.mjd import utc2mjd
 
 from ukirt2caom2 import IngestionError
 from ukirt2caom2.util import airmass_to_elevation, clean_header, valid_object
+from ukirt2caom2.release_date import ReleaseCalculator
 
 c = 299792458.0
 
 calibration_types = ('dark', 'flat', 'arc', 'sky',
                      'targetacq', 'bias', 'calibration')
+
+release_calculator = ReleaseCalculator()
 
 class ObservationUKIRT(object):
     def __init__(self, caom2_obs, date, uri, fits_format):
@@ -33,11 +36,7 @@ class ObservationUKIRT(object):
 
         # Compute release date
 
-        if self.date.month == 2 and self.date.day == 29:
-            release = self.date.replace(day=28, year=self.date.year + 1)
-
-        else:
-            release = self.date.replace(year=self.date.year + 1)
+        release = release_calculator.calculate(self.date)
 
         caom2_obs.meta_release = release
         self.release_date = release
