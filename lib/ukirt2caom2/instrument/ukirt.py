@@ -194,17 +194,9 @@ class ObservationUKIRT(object):
             part.product_type = ProductType.CALIBRATIN
             chunk.product_type = ProductType.CALIBRATIN
 
-        if 'DATE-OBS' in headers[0] and 'DATE-END' in headers[0]:
-            date_start = self.parse_date(headers[0]['DATE-OBS'])
-            date_end = self.parse_date(headers[0]['DATE-END'])
-
-            if date_start is not None and date_end is not None:
-                time = CoordAxis1D(Axis('TIME', 'd'))
-                time.range = CoordRange1D(
-                        RefCoord(0.5, utc2mjd(date_start)),
-                        RefCoord(1.5, utc2mjd(date_end)))
-
-                chunk.time = TemporalWCS(time, 'UTC')
+        time = self.get_temporal_wcs(headers)
+        if time is not None:
+            chunk.time = time
 
         energy = self.get_spectral_wcs(headers)
         if energy is not None:
@@ -217,6 +209,21 @@ class ObservationUKIRT(object):
         polarization = self.get_polarization_wcs(headers)
         if polarization is not None:
             chunk.polarization = polarization
+
+    def get_temporal_wcs(self, headers):
+        if 'DATE-OBS' in headers[0] and 'DATE-END' in headers[0]:
+            date_start = self.parse_date(headers[0]['DATE-OBS'])
+            date_end = self.parse_date(headers[0]['DATE-END'])
+
+            if date_start is not None and date_end is not None:
+                time = CoordAxis1D(Axis('TIME', 'd'))
+                time.range = CoordRange1D(
+                        RefCoord(0.5, utc2mjd(date_start)),
+                        RefCoord(1.5, utc2mjd(date_end)))
+
+                return TemporalWCS(time, 'UTC')
+
+        return None
 
     def parse_date(self, date_str):
         if date_str == '':

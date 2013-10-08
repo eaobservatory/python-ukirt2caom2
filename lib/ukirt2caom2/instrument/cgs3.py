@@ -1,8 +1,16 @@
+from datetime import datetime
 from logging import getLogger
 
 from caom2 import Instrument
 from caom2.caom2_enums import ObservationIntentType
+from caom2.wcs.caom2_axis import Axis
+from caom2.wcs.caom2_coord_axis1d import CoordAxis1D
+from caom2.wcs.caom2_coord_range1d import CoordRange1D
+from caom2.wcs.caom2_ref_coord import RefCoord
+from caom2.wcs.caom2_temporal_wcs import TemporalWCS
+
 from jcmt2caom2.raw import keywordvalue
+from jcmt2caom2.mjd import utc2mjd
 
 from ukirt2caom2 import IngestionError
 from ukirt2caom2.instrument import instrument_classes
@@ -99,5 +107,30 @@ class ObservationCGS3(ObservationUKIRT):
 
     def get_polarization_wcs(self, headers):
         return None
+
+    def get_temporal_wcs(self, headers):
+        if 'UTSTART' in headers[0] and 'UTEND' in headers[0]:
+            time_start = self.parse_time(headers[0]['UTSTART'])
+            time_end = self.parse_time(headers[0]['UTEND'])
+
+            if time_start is not None and time_end is not None:
+                date_start = datetime.combine(self.date.date(), time_start)
+                date_end = datetime.combine(self.date.date(), time_end)
+
+                time = CoordAxis1D(Axis('TIME', 'd'))
+                time.range = CoordRange1D(
+                        RefCoord(0.5, utc2mjd(date_start)),
+                        RefCoord(1.5, utc2mjd(date_end)))
+
+                return TemporalWCS(time, 'UTC')
+
+        return None
+
+    def parse_time(self, time_str):
+        try:
+            return datetime.strptime(time_str, '%H:%M:%S').time()
+
+        except ValueError:
+            return None
 
 instrument_classes['cgs3'] = ObservationCGS3
