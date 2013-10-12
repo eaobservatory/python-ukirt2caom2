@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from logging import getLogger
 
 from caom2 import Artifact, Chunk, \
         Environment, Part, Plane, Target
@@ -15,6 +16,8 @@ from jcmt2caom2.mjd import utc2mjd
 from ukirt2caom2 import IngestionError
 from ukirt2caom2.util import airmass_to_elevation, clean_header, valid_object
 from ukirt2caom2.release_date import ReleaseCalculator
+
+logger = getLogger(__name__)
 
 c = 299792458.0
 
@@ -197,6 +200,12 @@ class ObservationUKIRT(object):
         time = self.get_temporal_wcs(headers)
         if time is not None:
             chunk.time = time
+        else:
+            logger.warning('Date information not found, using default')
+            mjd = utc2mjd(self.date)
+            time = CoordAxis1D(Axis('TIME', 'd'))
+            time.range = CoordRange1D(RefCoord(0.5, mjd), RefCoord(1.5, mjd))
+            chunk.time = TemporalWCS(time, 'UTC')
 
         energy = self.get_spectral_wcs(headers)
         if energy is not None:
@@ -214,14 +223,22 @@ class ObservationUKIRT(object):
         if 'DATE-OBS' in headers[0] and 'DATE-END' in headers[0]:
             date_start = self.parse_date(headers[0]['DATE-OBS'])
             date_end = self.parse_date(headers[0]['DATE-END'])
+            check_date = self.date.date()
 
-            if date_start is not None and date_end is not None:
-                time = CoordAxis1D(Axis('TIME', 'd'))
-                time.range = CoordRange1D(
-                        RefCoord(0.5, utc2mjd(date_start)),
-                        RefCoord(1.5, utc2mjd(date_end)))
+            if date_start is None or date_end is None:
+                return None
 
-                return TemporalWCS(time, 'UTC')
+            if (date_start.date() != check_date or
+                    date_end.date() != check_date):
+                logger.warning('Date information does not match actual date, clearing')
+                return None
+
+            time = CoordAxis1D(Axis('TIME', 'd'))
+            time.range = CoordRange1D(
+                    RefCoord(0.5, utc2mjd(date_start)),
+                    RefCoord(1.5, utc2mjd(date_end)))
+
+            return TemporalWCS(time, 'UTC')
 
         return None
 
