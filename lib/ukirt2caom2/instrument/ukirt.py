@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from logging import getLogger
+import re
 
 from caom2 import Artifact, Chunk, \
         Environment, Part, Plane, Target
@@ -23,6 +24,8 @@ c = 299792458.0
 
 calibration_types = ('dark', 'flat', 'arc', 'sky',
                      'targetacq', 'bias', 'calibration')
+
+patt_array_test = re.compile('array.*test', re.I)
 
 release_calculator = ReleaseCalculator()
 
@@ -83,11 +86,18 @@ class ObservationUKIRT(object):
     def ingest_type_intent(self, headers):
         if 'OBSTYPE' in headers[0]:
             type = clean_header(headers[0]['OBSTYPE']).lower()
+            obj = headers[0].get('OBJECT', '')
+            # Note: after checking the database, there don't appear to be
+            # any cases where checking DRRECIPE would also be useful.
+            rec = headers[0].get('RECIPE', '')
 
             if type != '':
                 self.caom2.obs_type = type
 
-                if type == 'object':
+                if patt_array_test.search(obj) or patt_array_test.search(rec):
+                    self.caom2.intent = ObservationIntentType.CALIBRATION
+
+                elif type == 'object':
                     self.caom2.intent = ObservationIntentType.SCIENCE
 
                 elif type in calibration_types:
