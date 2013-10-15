@@ -44,6 +44,7 @@ class IngestRaw:
                  use_repo=False, out_dir=None, dump=False,
                  return_observations=False):
         num_errors = 0
+        num_success = 0
         all_obs = {}
 
         for doc in self.db.find(instrument, date, obs_num):
@@ -171,6 +172,11 @@ class IngestRaw:
             except IngestionError as e:
                 logger.error('Ingestion error: ' + e.message)
                 num_errors += 1
+
+            else:
+                num_success += 1
+
+        logger.info('Ingestion run finished, number ingested: ' + str(num_success))
 
         if return_observations:
             return all_obs
