@@ -42,15 +42,26 @@ class IngestRaw:
 
     def __call__(self, instrument, date=None, obs_num=None,
                  use_repo=False, out_dir=None, dump=False,
-                 return_observations=False):
+                 return_observations=False, control_file=None):
         num_errors = 0
         num_success = 0
         all_obs = {}
+
+        if control_file is None:
+            control = None
+        else:
+            control = read_control_file(control_file)
+            control_file = open(control_file, 'a')
 
         for doc in self.db.find(instrument, date, obs_num):
             document_to_ascii(doc)
             fixup_headers(doc)
             filename = doc['filename']
+
+            if control is not None and filename in control:
+                logger.debug('Skipping (already ingested) ' + filename)
+                continue
+
             logger.info('Ingesting observation ' + filename)
 
             obs_date = doc['utdate'] if date is None else date
@@ -175,6 +186,11 @@ class IngestRaw:
 
             else:
                 num_success += 1
+                if control_file is not None:
+                    write_control_file(control_file, filename)
+
+        if control_file is not None:
+            control_file.close()
 
         logger.info('Ingestion run finished, number ingested: ' + str(num_success))
 
@@ -233,3 +249,15 @@ class IngestRaw:
 
         return observation
 
+def read_control_file(filename):
+    ingested = set()
+
+    if exists(filename):
+        with open(filename) as file:
+            for text in file:
+                ingested.add(text.strip())
+
+    return ingested
+
+def write_control_file(file, text):
+    file.write(text + '\n')

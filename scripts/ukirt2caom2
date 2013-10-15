@@ -28,6 +28,8 @@ if __name__ == '__main__':
                         default=False, action='store_true')
     parser.add_argument('--verbose', '-v', required=False,
                         default=False, action='store_true')
+    parser.add_argument('--control', '-c', required=False,
+                        type=str, default=None)
 
     args = parser.parse_args()
 
@@ -52,7 +54,7 @@ if __name__ == '__main__':
 
     logger.info('Staring ingestion')
     num_errors = raw(args.instrument, args.date, args.observation,
-                     use_repo, out_dir, args.dump)
+                     use_repo, out_dir, args.dump, control_file=args.control)
 
     logger.info('Finished ingestion')
     print('ukirt2caom2 finished, observations rejected: ' + str(num_errors))
