@@ -6,6 +6,7 @@ from jcmt2caom2.raw import keywordvalue
 from ukirt2caom2 import IngestionError
 from ukirt2caom2.instrument import instrument_classes
 from ukirt2caom2.instrument.ukirt import ObservationUKIRT
+from ukirt2caom2.instrument.rutstartend import rut_start_end
 from ukirt2caom2.util import clean_header, normalize_detector_name
 
 logger = getLogger(__name__)
@@ -107,5 +108,14 @@ class ObservationCGS4(ObservationUKIRT):
 
     def get_polarization_wcs(self, headers):
         return None
+
+    def get_temporal_wcs(self, headers):
+        # First try the regular method, via the DATE-OBS/END headers:
+        wcs = ObservationUKIRT.get_temporal_wcs(self, headers)
+        if wcs is not None:
+            return wcs
+
+        # Otherwise try RUTSTART/RUTEND:
+        return rut_start_end(self.date, headers)
 
 instrument_classes['cgs4'] = ObservationCGS4
