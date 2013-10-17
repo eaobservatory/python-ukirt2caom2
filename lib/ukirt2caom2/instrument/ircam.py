@@ -1,6 +1,8 @@
+from datetime import datetime, time
 from logging import getLogger
 
 from jcmt2caom2.raw import keywordvalue
+from jcmt2caom2.mjd import utc2mjd
 
 from ukirt2caom2 import IngestionError
 from ukirt2caom2.instrument import instrument_classes
@@ -13,6 +15,7 @@ from caom2.wcs.caom2_coord_axis1d import CoordAxis1D
 from caom2.wcs.caom2_coord_range1d import CoordRange1D
 from caom2.wcs.caom2_ref_coord import RefCoord
 from caom2.wcs.caom2_spectral_wcs import SpectralWCS
+from caom2.wcs.caom2_temporal_wcs import TemporalWCS
 
 
 logger = getLogger(__name__)
@@ -149,5 +152,32 @@ class ObservationIRCAM(ObservationUKIRT):
 
     def get_polarization_wcs(self, headers):
         return None
+
+    def get_temporal_wcs(self, headers):
+        time_start = headers[0].get('RUTSTART')
+        time_end = headers[0].get('RUTEND')
+
+        if not (isinstance(time_start, float) and
+                isinstance(time_end, float)):
+            return None
+
+        date_start = datetime.combine(self.date.date(), self.float_to_time(time_start))
+        date_end = datetime.combine(self.date.date(), self.float_to_time(time_end))
+
+        time = CoordAxis1D(Axis('TIME', 'd'))
+        time.range = CoordRange1D(
+                RefCoord(0.5, utc2mjd(date_start)),
+                RefCoord(1.5, utc2mjd(date_end)))
+
+        return TemporalWCS(time, 'UTC')
+
+    def float_to_time(self, time_float):
+        hours = int(time_float)
+        time_float = 60 * (time_float - hours)
+        minutes = int(time_float)
+        time_float = 60 * (time_float - minutes)
+        seconds = int(time_float)
+
+        return time(hours, minutes, seconds)
 
 instrument_classes['ircam'] = ObservationIRCAM
