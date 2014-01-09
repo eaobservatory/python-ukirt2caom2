@@ -1,16 +1,22 @@
-from __future__ import print_function
-
 from datetime import datetime
-import subprocess
+
+from taco import Taco
 
 class ReleaseCalculator():
     def __init__(self):
-        self.p = subprocess.Popen(['perl', 'scripts/release_date.pl'],
-                                  stdin=subprocess.PIPE,
-                                  stdout=subprocess.PIPE)
+        self.taco = Taco(lang='perl')
+        self.taco.import_module('lib', '../omp-perl')
+        self.taco.import_module('OMP::DateTools')
 
     def calculate(self, date):
-        print(date.strftime('%Y%m%d'), file=self.p.stdin)
-        line = self.p.stdout.readline().strip()
+        semester = self.taco.call_function(
+            'OMP::DateTools::determine_semester', None,
+            date=date.strftime('%Y%m%d'), tel='UKIRT')
+        (sem_begin, sem_end) = self.taco.call_function(
+            'OMP::DateTools::semester_boundary', None,
+            semester=semester, tel='UKIRT', context='list')
 
-        return datetime.strptime(line, '%Y%m%d %H:%M:%S')
+        end_date = datetime.utcfromtimestamp(sem_end.call_method('epoch'))
+
+        return end_date.replace(year=end_date.year + 1,
+                                hour=23, minute=59, second=59)
