@@ -1,0 +1,178 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+
+from argparse import ArgumentParser
+import logging
+from pprint import pformat
+import re
+
+from taco import Taco
+
+from caom2.caom2_enums import ObservationIntentType
+from ukirt2caom2.ingest import IngestRaw
+from ukirt2caom2.submit.obs_list import ObsList
+
+recipe_names = {
+    'uist': {
+        'cal': [
+            'ARRAY_TESTS',
+            'DARK_AND_BPM',
+            'EMISSIVITY',
+            'MEASURE_READNOISE',
+            'REDUCE_ARC',
+            'REDUCE_DARK',
+            'REDUCE_FLAT',
+            'REDUCE_SKY',
+            'SKY_FLAT',
+            'SKY_FLAT_MASKED',
+            'SKY_FLAT_POL',
+        ],
+        'sci': [
+            'BRIGHT_POINT_SOURCE',
+            'BRIGHT_POINT_SOURCE_APHOT',
+            'BRIGHT_POINT_SOURCE_CATALOGUE',
+            'BRIGHT_POINT_SOURCE_NCOLOUR',
+            'BRIGHT_POINT_SOURCE_NCOLOUR_APHOT',
+            'CHOP_SKY_JITTER',
+            'EXTENDED_3x3',
+            'EXTENDED_5x5',
+            'EXTENDED_SOURCE',
+            'EXTENDED_SOURCE_NOSTD',
+            'EXTRACT_SLICES',
+            'FAINT_POINT_SOURCE',
+            'JITTER_SELF_FLAT',
+            'JITTER_SELF_FLAT_APHOT',
+            'JITTER_SELF_FLAT_NCOLOUR',
+            'JITTER_SELF_FLAT_NCOLOUR_APHOT',
+            'JITTER_SELF_FLAT_NO_MASK',
+            'MAP_EXTENDED_SOURCE',
+            'MAP_EXTENDED_SOURCE_NOSTD',
+            'NOD_SELF_FLAT_NO_MASK',
+            'NOD_SELF_FLAT_NO_MASK_APHOT',
+            'NOD_SKY_FLAT_THERMAL',
+            'POINT_SOURCE',
+            'POINT_SOURCE_CIRCULAR_POL',
+            'POINT_SOURCE_NOSTD',
+            'POINT_SOURCE_POL',
+            'POL_ANGLE_JITTER',
+            'POL_EXTENDED',
+            'POL_JITTER',
+            'POL_JITTER_CORON',
+            'QUADRANT_JITTER',
+            'QUICK_LOOK',
+            'REDUCE_SINGLE_FRAME',
+            'REDUCE_SINGLE_FRAMES_ONLY',
+            'SKY_FLAT_POL_ANGLE',
+            'SOURCE_WITH_NOD_TO_BLANK_SKY',
+            'STANDARD_STAR',
+            'STANDARD_STAR_NOD_ON_IFU',
+            'STANDARD_STAR_NOD_TO_SKY',
+        ],
+    },
+}
+
+def main():
+    instruments = ('cgs3', 'cgs4', 'ircam', 'michelle', 'ufti', 'uist')
+
+    parser = ArgumentParser()
+
+    parser.add_argument('--instrument', '-i', required=True,
+                        choices=instruments)
+    parser.add_argument('--date', '-d', required=True,
+                        default=None)
+    parser.add_argument('--dry-run', '-n', required=False,
+                        default=False, action='store_true')
+    parser.add_argument('--verbose', '-v', required=False,
+                        default=False, action='store_true')
+
+    args = parser.parse_args()
+
+    if not re.match('^[0-9]{8}$', args.date):
+        raise Exception('Invalid date ' + args.date)
+
+    inst_info = recipe_names[args.instrument]
+
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
+    logger = logging.getLogger('ukirt_archive_submit')
+
+    logger.debug('Setting up Taco connection to Starlink-Perl')
+
+    taco = Taco(lang='starperl')
+    taco.import_module('JAC::Setup', 'omp', 'sybase')
+    taco.import_module('JSA::CADC_DP',
+                       'connect_to_cadcdp',
+                       'create_recipe_instance',
+                       'disconnect_from_cadcdp',
+                       'dprecinst_url')
+
+    create_recipe_instance = taco.function('create_recipe_instance')
+    recipe_instance_url = taco.function('dprecinst_url')
+
+    logger.info('Setting up IngestRaw object')
+    raw = IngestRaw()
+
+    logger.info('Fetching observations')
+    observations = raw(args.instrument, args.date, return_observations=True)
+    logger.info('Finished receiving observations')
+
+    calibrations = ObsList()
+    all_uris = []
+
+    for key in sorted(observations.keys()):
+        (date, obs) = key
+        (filename, uri, observation, doc) = observations[key]
+
+        logger.info('Considering observation {0} {1}'.format(date, obs))
+
+        recipe = doc['headers'][0]['RECIPE']
+
+        if recipe in inst_info['cal']:
+            calibrations(obs)
+        else:
+            if recipe not in inst_info['sci']:
+                logger.warning('Unrecognised recipe name {}'.format(recipe))
+
+        all_uris.append(uri)
+
+    options = {
+        'script': 'ukirtwrapdr',
+        'dprecipe_tag': 'UKIRT Reduction',
+        'tag': '{0}_{1}'.format(args.instrument, args.date),
+        'extra_parameters': {
+            'obscal': calibrations.get_list(),
+        },
+    }
+
+    logger.info('Using recipe instance parameters:')
+    for line in pformat(options, width=40).splitlines():
+        logger.info(line)
+
+    dbh = None
+
+    try:
+        if not args.dry_run:
+            logger.info('Connecting to CADC')
+            dbh = taco.call_function('connect_to_cadcdp')
+
+        if not args.dry_run:
+            recipe_id = create_recipe_instance(dbh, all_uris, options)
+
+            if recipe_id is not None:
+                logger.info('Submitted recipe instance {0}'.format(recipe_id))
+                logger.info('Recipe URL: {0}'.format(
+                            recipe_instance_url(recipe_id)))
+            else:
+                logger.error('Error submitting job')
+        else:
+            for uri in all_uris:
+                logger.info('Dry run mode, otherwise adding URI {0}'.format(uri))
+
+
+    finally:
+        if dbh is not None:
+            logger.info('Disconnecting from CADC')
+            taco.call_function('disconnect_from_cadcdp', dbh)
+
+if __name__ == '__main__':
+    main()

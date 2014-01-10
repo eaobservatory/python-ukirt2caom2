@@ -152,7 +152,7 @@ class IngestRaw:
 
                 if return_observations:
                         all_obs[(obs_date, caom2_obs.sequence_number)] = \
-                        (filename, observation, doc)
+                        (filename, uri, observation, doc)
 
                 if dump:
                     self.writer.write(observation.caom2, stdout)
