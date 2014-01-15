@@ -27,6 +27,7 @@ recipe_names = {
             'SKY_FLAT',
             'SKY_FLAT_MASKED',
             'SKY_FLAT_POL',
+            'SKY_FLAT_POL_ANGLE',
         ],
         'sci': [
             'BRIGHT_POINT_SOURCE',
@@ -63,7 +64,6 @@ recipe_names = {
             'QUICK_LOOK',
             'REDUCE_SINGLE_FRAME',
             'REDUCE_SINGLE_FRAMES_ONLY',
-            'SKY_FLAT_POL_ANGLE',
             'SOURCE_WITH_NOD_TO_BLANK_SKY',
             'STANDARD_STAR',
             'STANDARD_STAR_NOD_ON_IFU',
