@@ -26,6 +26,7 @@ calibration_types = ('dark', 'flat', 'arc', 'sky',
                      'targetacq', 'bias', 'calibration')
 
 patt_array_test = re.compile('array.*test', re.I)
+patt_milliseconds = re.compile('\.\d\d\d$')
 
 release_calculator = ReleaseCalculator()
 
@@ -259,8 +260,12 @@ class ObservationUKIRT(object):
         if date_str[-1] == 'Z':
             date_str = date_str[:-1]
 
+        if patt_milliseconds.search(date_str):
+            date_str = date_str[:-4]
+
         try:
             return datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S')
 
         except ValueError:
+            logger.warning('Failed to parse date {}'.format(date_str))
             return None
