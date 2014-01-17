@@ -77,7 +77,7 @@ class IngestRaw:
                                                 obs_date[4:6], obs_date[6:8])
                     for date_field in ('DATE-OBS', 'DATE-END'):
                         if date_field not in header_copy or not valid_date.match(header_copy[date_field]):
-                            logger.warning('Replacing invalid {} "{}" with "{}"'.format(
+                            logger.warning('For translation, replacing {} "{}" with "{}"'.format(
                                            date_field, header_copy.get(date_field, 'NONE'), obs_date_fake))
                             header_copy[date_field] = obs_date_fake
 
