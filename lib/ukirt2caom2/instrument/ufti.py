@@ -179,10 +179,10 @@ class ObservationUFTI(ObservationUKIRT):
             base = base.offset(float(xoff) / 3600.0, float(yoff) / 3600.0)
 
         box = CoordPolygon2D()
-        box.vertices.append(to_coord2D(base.offset(rascale * (x1 - xref), decscale * (y2 - yref)), x1, y2)) #TL
-        box.vertices.append(to_coord2D(base.offset(rascale * (x2 - xref), decscale * (y2 - yref)), x2, y2)) #TR
-        box.vertices.append(to_coord2D(base.offset(rascale * (x2 - xref), decscale * (y1 - yref)), x2, y1)) #BR
-        box.vertices.append(to_coord2D(base.offset(rascale * (x1 - xref), decscale * (y1 - yref)), x1, y1)) #BL
+        box.vertices.append(to_coord2D(base.offset(rascale * (x1 - xref), decscale * (y2 - yref)))) #TL
+        box.vertices.append(to_coord2D(base.offset(rascale * (x2 - xref), decscale * (y2 - yref)))) #TR
+        box.vertices.append(to_coord2D(base.offset(rascale * (x2 - xref), decscale * (y1 - yref)))) #BR
+        box.vertices.append(to_coord2D(base.offset(rascale * (x1 - xref), decscale * (y1 - yref)))) #BL
 
         spatial_axes = CoordAxis2D(Axis('RA', 'deg'),
                                    Axis('DEC', 'deg'))

@@ -1,10 +1,8 @@
-from caom2.wcs.caom2_coord2d import Coord2D
-from caom2.wcs.caom2_ref_coord import RefCoord
+from caom2.wcs.caom2_value_coord2d import ValueCoord2D
 
-def to_coord2D(coord, xpix=1.0, ypix=1.0):
+def to_coord2D(coord):
     (ra, dec) = coord.deg()
 
-    return Coord2D(RefCoord(float(xpix), ra),
-                   RefCoord(float(ypix), dec))
+    return ValueCoord2D(ra, dec)
 
 
