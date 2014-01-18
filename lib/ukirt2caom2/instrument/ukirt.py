@@ -180,7 +180,7 @@ class ObservationUKIRT(object):
         if self.caom2.intent == ObservationIntentType.SCIENCE:
             artifact.product_type = ProductType.SCIENCE
         else:
-            artifact.product_type = ProductType.CALIBRATIN
+            artifact.product_type = ProductType.CALIBRATION
 
         self.ingest_parts(artifact, headers, translated)
 
@@ -205,8 +205,8 @@ class ObservationUKIRT(object):
             part.product_type = ProductType.SCIENCE
             chunk.product_type = ProductType.SCIENCE
         else:
-            part.product_type = ProductType.CALIBRATIN
-            chunk.product_type = ProductType.CALIBRATIN
+            part.product_type = ProductType.CALIBRATION
+            chunk.product_type = ProductType.CALIBRATION
 
         time = self.get_temporal_wcs(headers)
         if time is not None:
