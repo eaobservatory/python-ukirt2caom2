@@ -8,6 +8,7 @@ import re
 import sys
 
 from caom2 import Algorithm, Artifact, CompositeObservation, Instrument, Plane, Telescope
+from caom2.caom2_enums import CalibrationLevel, ObservationIntentType, ProductType
 from caom2.xml.caom2_observation_writer import ObservationWriter
 from caom2repoClient.caom2repoClient import CAOM2RepoClient
 
@@ -18,27 +19,43 @@ def process_capture_log(filename):
     logging.basicConfig(level=logging.DEBUG)
 
     observations = {}
+    previews = {}
 
     geolocation = ukirt_geolocation()
     release_calculator = ReleaseCalculator()
     writer = ObservationWriter(True)
     client = CAOM2RepoClient()
 
+    pattern_fits = re.compile('File is UKIRT_([A-Z]+)_([0-9]+)_([0-9]+)_([A-Za-z0-9]+)\.fits')
+    pattern_png = re.compile('File is UKIRT_([A-Z]+)_([0-9]+)_([0-9]+)_([A-Za-z0-9]+)_preview_([0-9]+)\.png')
+
     with open(filename) as f:
         for line in f:
             line = line.strip()
 
-            match = re.search('File is UKIRT_([A-Z]+)_([0-9]+)_([0-9]+)_([A-Za-z0-9]+)\.fits', line)
+            match = pattern_fits.search(line)
 
             if match:
                 (instrument, date, obsnum, product) = match.groups()
 
                 key = (instrument, date, obsnum)
 
-                if key in (observations):
+                if key in observations:
                     observations[key].append(product)
                 else:
                     observations[key] = [product]
+
+            match = pattern_png.search(line)
+
+            if match:
+                (instrument, date, obsnum, product, size) = match.groups()
+
+                key = (instrument, date, obsnum, product)
+
+                if key in previews:
+                    previews[key].append(int(size))
+                else:
+                    previews[key] = [int(size)]
 
     for (key, products) in observations.items():
         (instrument, date, obsnum) = key
@@ -51,6 +68,7 @@ def process_capture_log(filename):
             observation_id='{}_{}_{}'.format(instrument, date, obsnum),
             algorithm=Algorithm('reduced'),
             sequence_number=int(obsnum),
+            intent=ObservationIntentType.SCIENCE,
             telescope=Telescope('UKIRT', *geolocation),
             instrument=Instrument(instrument),
             meta_release=release,
@@ -67,11 +85,19 @@ def process_capture_log(filename):
 
             uri = 'ad:UKIRT/UKIRT_{}_{}_{}_{}.fits'.format(instrument, date, obsnum, product)
 
-            artifact = Artifact(uri)
+            artifact = Artifact(uri, product_type=ProductType.SCIENCE)
 
             plane.artifacts[uri] = artifact
 
-        #writer.write(observation, sys.stdout)
+            key = (instrument, date, obsnum, product)
+
+            if key in previews:
+                for size in sorted(previews[key]):
+                    uri = 'ad:UKIRT/UKIRT_{}_{}_{}_{}_preview_{}.png'.format(instrument, date, obsnum, product, size)
+
+                    artifact = Artifact(uri, product_type=ProductType.PREVIEW)
+
+                    plane.artifacts[uri] = artifact
 
         with BytesIO() as f:
             writer.write(observation, f)
@@ -79,6 +105,8 @@ def process_capture_log(filename):
 
         caom2_uri = 'caom2:UKIRT/{}_{}_{}'.format(instrument, date, obsnum)
         print(caom2_uri)
+        #print(xml)
+        client.remove(caom2_uri)
         status = client.put_xml(caom2_uri, xml)
 
         if not status:
