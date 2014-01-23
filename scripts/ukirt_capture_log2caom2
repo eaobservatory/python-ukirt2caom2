@@ -66,7 +66,7 @@ def process_capture_log(filename):
         observation = CompositeObservation(
             collection='UKIRT',
             observation_id='{}_{}_{}'.format(instrument, date, obsnum),
-            algorithm=Algorithm('reduced'),
+            algorithm=Algorithm('group'),
             sequence_number=int(obsnum),
             intent=ObservationIntentType.SCIENCE,
             telescope=Telescope('UKIRT', *geolocation),
