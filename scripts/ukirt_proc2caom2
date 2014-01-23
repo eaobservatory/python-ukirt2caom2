@@ -1,0 +1,56 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+
+import logging
+
+from taco import Taco
+
+def main():
+    logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger('ukirt_proc2caom2')
+
+    logger.debug('Setting up Taco connection to Starlink-Perl')
+
+    taco = Taco(lang='starperl')
+    taco.import_module('JAC::Setup', 'omp', 'sybase')
+    taco.import_module('JSA::CADC_DP',
+                       'connect_to_cadcdp',
+                       'disconnect_from_cadcdp')
+
+    query = taco.function('JSA::CADC_DP::runQuery')
+
+    dbh = None
+
+    try:
+        logger.info('Connecting to CADC')
+        dbh = taco.call_function('connect_to_cadcdp')
+
+        recipes = query(dbh,
+            'SELECT identity_instance_id ' +
+            'FROM dp_recipe_instance ' +
+                'JOIN dp_recipe ' +
+                'ON dp_recipe.recipe_id=dp_recipe_instance.recipe_id ' +
+            'WHERE script_name="ukirtwrapdr" ' +
+                'AND state="Y"',
+            context='list')
+
+        for recipe in recipes:
+            id_ = int(recipe['identity_instance_id'])
+            logger.info('Querying files for recipe instance: {}'.format(id_))
+
+            files = query(dbh,
+                'SELECT dp_output ' +
+                'FROM dp_recipe_output ' +
+                'WHERE identity_instance_id={}'.format(id_),
+                context='list')
+
+            files = [x['dp_output'] for x in files]
+
+    finally:
+        if dbh is not None:
+            logger.info('Disconnecting from CADC')
+            taco.call_function('disconnect_from_cadcdp', dbh)
+
+if __name__ == '__main__':
+    main()
