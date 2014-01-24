@@ -2,9 +2,12 @@
 
 from __future__ import print_function
 
+from codecs import latin_1_encode
 import logging
 
 from taco import Taco
+
+from ukirt2caom2.ingest_proc import IngestProc
 
 def main():
     logging.basicConfig(level=logging.DEBUG)
@@ -19,6 +22,8 @@ def main():
                        'disconnect_from_cadcdp')
 
     query = taco.function('JSA::CADC_DP::runQuery')
+
+    ingest = IngestProc()
 
     dbh = None
 
@@ -45,7 +50,9 @@ def main():
                 'WHERE identity_instance_id={}'.format(id_),
                 context='list')
 
-            files = [x['dp_output'] for x in files]
+            files = [latin_1_encode(x['dp_output'][9:])[0] for x in files]
+
+            ingest(files)
 
     finally:
         if dbh is not None:
