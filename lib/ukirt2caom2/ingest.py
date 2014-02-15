@@ -233,7 +233,10 @@ class IngestRaw:
 
             if project_info is not None:
                 if project_info.title is not None:
-                    proposal.title = project_info.title
+                    title = project_info.title
+                    if title.find('\n') != -1:
+                        title = title.replace('\n', ' ')
+                    proposal.title = title
                 if project_info.pi is not None:
                     proposal.pi_name  = project_info.pi
 
