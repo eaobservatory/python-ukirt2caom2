@@ -1,7 +1,7 @@
 from logging import getLogger
 
 from caom2 import Instrument
-from jcmt2caom2.raw import keywordvalue
+from ukirt2caom2.keywordvalue import keywordvalue
 
 from ukirt2caom2 import IngestionError
 from ukirt2caom2.coord import CoordFK5

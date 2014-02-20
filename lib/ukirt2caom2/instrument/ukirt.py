@@ -12,7 +12,7 @@ from caom2.wcs.caom2_coord_range1d import CoordRange1D
 from caom2.wcs.caom2_ref_coord import RefCoord
 from caom2.wcs.caom2_temporal_wcs import TemporalWCS
 
-from jcmt2caom2.mjd import utc2mjd
+from tools4caom2.mjd import utc2mjd
 
 from ukirt2caom2 import IngestionError
 from ukirt2caom2.util import airmass_to_elevation, clean_header, valid_object

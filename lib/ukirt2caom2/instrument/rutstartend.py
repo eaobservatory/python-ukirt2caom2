@@ -1,6 +1,6 @@
 from datetime import datetime, time
 
-from jcmt2caom2.mjd import utc2mjd
+from tools4caom2.mjd import utc2mjd
 
 from caom2.wcs.caom2_axis import Axis
 from caom2.wcs.caom2_coord_axis1d import CoordAxis1D

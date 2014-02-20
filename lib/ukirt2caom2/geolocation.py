@@ -2,7 +2,7 @@ from math import degrees
 
 import palpy
 
-from jcmt2caom2.geolocation import geolocation
+from tools4caom2.geolocation import geolocation
 
 def ukirt_geolocation():
     """Location of UKIRT as an (X, Y, Z) tuple.
