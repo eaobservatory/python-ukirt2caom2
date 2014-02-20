@@ -11,6 +11,31 @@ from ukirt2caom2.util import clean_header, normalize_detector_name
 
 logger = getLogger(__name__)
 
+# List of CGS4 filters with the 50% cut-on and cut-off points, full name
+# and line wavelength for narrow filters.
+cgs4_filters = {
+        'IJ':        (0.84,  1.04,  'IJ',              None), #0.94),
+
+        'B1':        (0.99,  1.59,  'B1',              None), #1.29),
+        'B2':        (1.43,  2.60,  'B2',              None), #2.02),
+        'B3':        (2.14,  4.16,  'B3',              None), #3.15),
+        'B4':        (2.75,  4.24,  'B4',              None), #3.50),
+        'B5':        (4.35,  5.5,   'B5',              None), #4.92),
+        'B6':        (2.00,  2.41,  'B6',              None), #2.21),
+        'B7':        (None,  None,  'B7',              None), #None),
+
+        'N1':        (1.078, 1.099, 'N1',              None), #1.089),
+        'N2':        (1.218, 1.240, 'N2',              None), #1.229),
+        'N3':        (1.247, 1.272, 'N3',              None), #1.259),
+        'N4':        (1.264, 1.286, 'N4',              None), #1.275),
+        'N5':        (1.283, 1.305, 'N5',              None), #1.293),
+
+        'blank':     (None,  None,  'Blank',           None),
+        'open':      (None,  None,  'Open',            None),
+        'lens':      (None,  None,  'Lens',            None),
+        'Blanks':    (None,  None,  'Blank',           None),
+}
+
 class ObservationCGS4(ObservationUKIRT):
     def ingest_instrument(self, headers):
         instrument = Instrument('CGS4')

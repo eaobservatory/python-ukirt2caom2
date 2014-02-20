@@ -19,6 +19,18 @@ from ukirt2caom2.util import clean_header
 
 logger = getLogger(__name__)
 
+# List of CGS3 filters.
+cgs3_filters = {
+        '7-14UM':     (7.0,   14.0,  '7-14um',          None),
+        '7-22FKS':    (7.0,   22.0,  '7-22um[FKS]',     None),
+        '7-22NEI':    (7.0,   22.0,  '7-22um[NEI]',     None),
+        '8-12UM':     (8.0,   12.0,  '8-12um',          None),
+        '15-24UM':    (15.0,  24.0,  '15-24um',         None),
+        'K':          (None,  None,  'K[CGS3]',         None), # Not to be confused with the normal K
+
+        'BLANK':      (None,  None,  'Blank',           None),
+}
+
 class ObservationCGS3(ObservationUKIRT):
     def ingest_instrument(self, headers):
         instrument = Instrument('CGS3')
