@@ -12,65 +12,7 @@ from taco import Taco
 from caom2.caom2_enums import ObservationIntentType
 from ukirt2caom2.ingest import IngestRaw
 from ukirt2caom2.submit.obs_list import ObsList
-
-recipe_names = {
-    'uist': {
-        'cal': [
-            'ARRAY_TESTS',
-            'DARK_AND_BPM',
-            'EMISSIVITY',
-            'MEASURE_READNOISE',
-            'REDUCE_ARC',
-            'REDUCE_DARK',
-            'REDUCE_FLAT',
-            'REDUCE_SKY',
-            'SKY_FLAT',
-            'SKY_FLAT_MASKED',
-            'SKY_FLAT_POL',
-            'SKY_FLAT_POL_ANGLE',
-        ],
-        'sci': [
-            'BRIGHT_POINT_SOURCE',
-            'BRIGHT_POINT_SOURCE_APHOT',
-            'BRIGHT_POINT_SOURCE_CATALOGUE',
-            'BRIGHT_POINT_SOURCE_NCOLOUR',
-            'BRIGHT_POINT_SOURCE_NCOLOUR_APHOT',
-            'CHOP_SKY_JITTER',
-            'EXTENDED_3x3',
-            'EXTENDED_5x5',
-            'EXTENDED_SOURCE',
-            'EXTENDED_SOURCE_NOSTD',
-            'EXTRACT_SLICES',
-            'FAINT_POINT_SOURCE',
-            'JITTER_SELF_FLAT',
-            'JITTER_SELF_FLAT_APHOT',
-            'JITTER_SELF_FLAT_NCOLOUR',
-            'JITTER_SELF_FLAT_NCOLOUR_APHOT',
-            'JITTER_SELF_FLAT_NO_MASK',
-            'MAP_EXTENDED_SOURCE',
-            'MAP_EXTENDED_SOURCE_NOSTD',
-            'NOD_SELF_FLAT_NO_MASK',
-            'NOD_SELF_FLAT_NO_MASK_APHOT',
-            'NOD_SKY_FLAT_THERMAL',
-            'POINT_SOURCE',
-            'POINT_SOURCE_CIRCULAR_POL',
-            'POINT_SOURCE_NOSTD',
-            'POINT_SOURCE_POL',
-            'POL_ANGLE_JITTER',
-            'POL_EXTENDED',
-            'POL_JITTER',
-            'POL_JITTER_CORON',
-            'QUADRANT_JITTER',
-            'QUICK_LOOK',
-            'REDUCE_SINGLE_FRAME',
-            'REDUCE_SINGLE_FRAMES_ONLY',
-            'SOURCE_WITH_NOD_TO_BLANK_SKY',
-            'STANDARD_STAR',
-            'STANDARD_STAR_NOD_ON_IFU',
-            'STANDARD_STAR_NOD_TO_SKY',
-        ],
-    },
-}
+from ukirt2caom2.submit.recipe_names import recipe_names
 
 def main():
     instruments = ('cgs3', 'cgs4', 'ircam', 'michelle', 'ufti', 'uist')
