@@ -29,6 +29,8 @@ recipe_names = {
             'SOURCE_PAIRS_TO_SKY',
             'SOURCE_WITH_NOD_TO_BLANK_SKY',
             'STANDARD_QUADS',
+        ],
+        'std': [
             'STANDARD_STAR',
             'STANDARD_STAR_NOFLAT',
             'STANDARD_STAR_NO_FLAT',
@@ -86,6 +88,8 @@ recipe_names = {
             'SKY_AND_JITTER5_APHOT'
             'SKY_AND_JITTER_APHOT',
         ],
+        'std': [
+        ],
     },
     'michelle': {
         'cal': [
@@ -129,6 +133,8 @@ recipe_names = {
             'SOURCE_PAIRS_ON_SLIT',
             'SOURCE_PAIRS_ON_SLIT_NO_STD',
             'STANDARD_QUADS',
+        ],
+        'std': [
             'STANDARD_STAR',
             'STANDARD_STAR_NOFLAT',
         ],
@@ -228,6 +234,8 @@ recipe_names = {
             'SKY_AND_JITTER5_APHOT',
             '_JITTER9_SELF_FLAT_BASIC',
         ],
+        'std': [
+        ],
     },
     'uist': {
         'cal': [
@@ -280,6 +288,8 @@ recipe_names = {
             'REDUCE_SINGLE_FRAME',
             'REDUCE_SINGLE_FRAMES_ONLY',
             'SOURCE_WITH_NOD_TO_BLANK_SKY',
+        ],
+        'std': [
             'STANDARD_STAR',
             'STANDARD_STAR_NOD_ON_IFU',
             'STANDARD_STAR_NOD_TO_SKY',

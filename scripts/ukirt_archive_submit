@@ -59,6 +59,7 @@ def main():
     logger.info('Finished receiving observations')
 
     calibrations = ObsList()
+    standards  = ObsList()
     all_uris = []
 
     for key in sorted(observations.keys()):
@@ -71,6 +72,8 @@ def main():
 
         if recipe in inst_info['cal']:
             calibrations(obs)
+        elif recipe in inst_info['std']:
+            standards(obs)
         else:
             if recipe not in inst_info['sci']:
                 logger.warning('Unrecognised recipe name {}'.format(recipe))
@@ -83,6 +86,7 @@ def main():
         'tag': '{0}_{1}'.format(args.instrument, args.date),
         'extra_parameters': {
             'obscal': calibrations.get_list(),
+            'obsstd': standards.get_list(),
         },
     }
 
