@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from math import sin, cos
+
 import palpy as pal
 
 def is_not_none(value):
@@ -30,8 +32,24 @@ class CoordFK5():
         else:
             self.dec = dec_rad
 
-    def offset(self, dra_deg, ddec_deg):
-        (ra, dec) = pal.dtp2s(dra_deg * pal.DD2R, ddec_deg * pal.DD2R, self.ra, self.dec)
+    def offset(self, dra_deg, ddec_deg, rotn_deg):
+        """Create offset coordinate.
+
+        The rotation angle ``rotn_deg`` is the angle of the declination
+        axis w.r.t. the declination axis of the offset (ccw).
+        """
+
+        dra_rad = dra_deg * pal.DD2R
+        ddec_rad = ddec_deg * pal.DD2R
+        rotn_rad = rotn_deg * pal.DD2R
+        c = cos(rotn_rad)
+        s = sin(rotn_rad)
+
+        (ra, dec) = pal.dtp2s(
+            c * dra_rad + s * ddec_rad,
+            c * ddec_rad - s * dra_rad,
+            self.ra,
+            self.dec)
 
         return CoordFK5(ra_rad=ra, dec_rad=dec)
 

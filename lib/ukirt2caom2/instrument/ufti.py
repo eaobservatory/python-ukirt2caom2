@@ -152,6 +152,7 @@ class ObservationUFTI(ObservationUKIRT):
         y2 = translated.get('Y_UPPER_BOUND', None)
         xoff = translated.get('RA_TELESCOPE_OFFSET', None)
         yoff = translated.get('DEC_TELESCOPE_OFFSET', None)
+        rotation = translated.get('ROTATION', None)
 
         if None in (rabase, decbase, xref, yref, rascale, decscale,
                 x1, x2, y1, y2):
@@ -168,6 +169,11 @@ class ObservationUFTI(ObservationUKIRT):
                          str(rabase) + ', ' + str(decbase))
             return None
 
+        if type(rotation) is int:
+            rotation = float(rotation)
+        elif type(rotation) is not float:
+            rotation = 0.0
+
         # Convert to degrees
         rascale = float(rascale) / 3600.0
         decscale = float(decscale) / 3600.0
@@ -176,13 +182,13 @@ class ObservationUFTI(ObservationUKIRT):
         base = CoordFK5(ra_deg=rabase, dec_deg=decbase)
 
         if xoff is not None and yoff is not None:
-            base = base.offset(float(xoff) / 3600.0, float(yoff) / 3600.0)
+            base = base.offset(float(xoff) / 3600.0, float(yoff) / 3600.0, 0.0)
 
         box = CoordPolygon2D()
-        box.vertices.append(to_coord2D(base.offset(rascale * (x1 - xref), decscale * (y2 - yref)))) #TL
-        box.vertices.append(to_coord2D(base.offset(rascale * (x2 - xref), decscale * (y2 - yref)))) #TR
-        box.vertices.append(to_coord2D(base.offset(rascale * (x2 - xref), decscale * (y1 - yref)))) #BR
-        box.vertices.append(to_coord2D(base.offset(rascale * (x1 - xref), decscale * (y1 - yref)))) #BL
+        box.vertices.append(to_coord2D(base.offset(rascale * (x2 - xref), decscale * (y2 - yref), rotation))) #TL
+        box.vertices.append(to_coord2D(base.offset(rascale * (x1 - xref), decscale * (y2 - yref), rotation))) #TR
+        box.vertices.append(to_coord2D(base.offset(rascale * (x1 - xref), decscale * (y1 - yref), rotation))) #BR
+        box.vertices.append(to_coord2D(base.offset(rascale * (x2 - xref), decscale * (y1 - yref), rotation))) #BL
 
         spatial_axes = CoordAxis2D(Axis('RA', 'deg'),
                                    Axis('DEC', 'deg'))
