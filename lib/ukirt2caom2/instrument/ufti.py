@@ -106,6 +106,15 @@ class ObservationUFTI(ObservationUKIRT):
 
             instrument.keywords.append(keywordvalue('speed_gain', speed))
 
+        # Of all the recipes seen for UFTI, only Fabry-Perot recipes
+        # contain the substring FP.
+        if ('RECIPE' in headers[0]) and ('FP' in headers[0]['RECIPE']):
+            self.__fp = True
+        else:
+            self.__fp = False
+
+        instrument.keywords.append(keywordvalue('fp', 'true' if self.__fp else 'false'))
+
     def get_spectral_wcs(self, headers):
         # TODO deal with Fabry Perot thing.
 
