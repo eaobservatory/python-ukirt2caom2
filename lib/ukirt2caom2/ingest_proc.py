@@ -14,8 +14,9 @@ from ukirt2caom2.release_date import ReleaseCalculator
 
 logger = getLogger(__name__)
 
-pattern_fits = re.compile('UKIRT_([A-Z]+)_([0-9]+)_([0-9]+)_([A-Za-z0-9]+)\.fits')
-pattern_png = re.compile('UKIRT_([A-Z]+)_([0-9]+)_([0-9]+)_([A-Za-z0-9]+)_preview_([0-9]+)\.png')
+pattern_fits = re.compile('ukirt_([a-z]+)_([0-9]+)_([0-9]+)_([_a-z0-9]+)\.fits')
+pattern_png = re.compile('ukirt_([a-z]+)_([0-9]+)_([0-9]+)_([_a-z0-9]+)_preview_([0-9]+)\.png')
+pattern_log = re.compile('ukirt_([a-z]+)_([0-9]+)_log_([a-z]+).txt')
 
 class IngestProc:
     def __init__(self):
@@ -26,7 +27,6 @@ class IngestProc:
 
     def __call__(self, files):
         observations = {}
-        previews = {}
 
         for file in files:
             match = pattern_fits.match(file)
@@ -46,15 +46,11 @@ class IngestProc:
             match = pattern_png.match(file)
 
             if match:
-                (instrument, date, obsnum, product, size) = match.groups()
+                continue
 
-                key = (instrument, date, obsnum, product)
+            match = pattern_log.match(file)
 
-                if key in previews:
-                    previews[key].append(int(size))
-                else:
-                    previews[key] = [int(size)]
-
+            if match:
                 continue
 
             logger.warning('Unrecognised file name: {}'.format(file))
@@ -65,6 +61,10 @@ class IngestProc:
             dateobj = datetime.strptime(date, '%Y%m%d')
             release = self.release_calculator.calculate(dateobj)
 
+            # Prior to usage of instrument classes, try just to
+            # upper case the instrument name except for Michelle.
+            instrument_name = 'Michelle' if instrument == 'michelle' else instrument.upper()
+
             observation = CompositeObservation(
                 collection='UKIRT',
                 observation_id='{}_{}_{}'.format(instrument, date, obsnum),
@@ -72,7 +72,7 @@ class IngestProc:
                 sequence_number=int(obsnum),
                 intent=ObservationIntentType.SCIENCE,
                 telescope=Telescope('UKIRT', *self.geolocation),
-                instrument=Instrument(instrument),
+                instrument=Instrument(instrument_name),
                 meta_release=release,
             )
 
@@ -85,21 +85,13 @@ class IngestProc:
 
                 observation.planes[product] = plane
 
-                uri = 'ad:UKIRT/UKIRT_{}_{}_{}_{}.fits'.format(instrument, date, obsnum, product)
+                uri = 'ad:UKIRT/ukirt_{}_{}_{}_{}.fits'.format(instrument, date, obsnum, product)
 
                 artifact = Artifact(uri, product_type=ProductType.SCIENCE)
 
                 plane.artifacts[uri] = artifact
 
                 key = (instrument, date, obsnum, product)
-
-                if key in previews:
-                    for size in sorted(previews[key]):
-                        uri = 'ad:UKIRT/UKIRT_{}_{}_{}_{}_preview_{}.png'.format(instrument, date, obsnum, product, size)
-
-                        artifact = Artifact(uri, product_type=ProductType.PREVIEW)
-
-                        plane.artifacts[uri] = artifact
 
             with BytesIO() as f:
                 self.writer.write(observation, f)
