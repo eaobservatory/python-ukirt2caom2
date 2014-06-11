@@ -84,6 +84,7 @@ def main():
         'script': 'ukirtwrapdr',
         'dprecipe_tag': 'UKIRT Reduction',
         'tag': '{0}_{1}'.format(args.instrument, args.date),
+        'priority': -750,
         'extra_parameters': {
             'obscal': calibrations.get_list(),
             'obsstd': standards.get_list(),
