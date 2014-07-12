@@ -33,9 +33,12 @@ def main():
     if not re.match('^[0-9]{8}$', args.date):
         raise Exception('Invalid date ' + args.date)
 
-    inst_info = recipe_names[args.instrument]
+    ukirt_archive_submit(args.instrument, args.date, args.verbose, args.dry_run)
 
-    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
+def ukirt_archive_submit(instrument, date, verbose=False, dry_run=False):
+    inst_info = recipe_names[instrument]
+
+    logging.basicConfig(level=logging.DEBUG if verbose else logging.INFO)
     logger = logging.getLogger('ukirt_archive_submit')
 
     logger.debug('Setting up Taco connection to Starlink-Perl')
@@ -55,7 +58,7 @@ def main():
     raw = IngestRaw()
 
     logger.info('Fetching observations')
-    observations = raw(args.instrument, args.date, return_observations=True)
+    observations = raw(instrument, date, return_observations=True)
     logger.info('Finished receiving observations')
 
     calibrations = ObsList()
@@ -83,7 +86,7 @@ def main():
     options = {
         'script': 'ukirtwrapdr',
         'dprecipe_tag': 'UKIRT Reduction',
-        'tag': '{0}_{1}'.format(args.instrument, args.date),
+        'tag': '{0}_{1}'.format(instrument, date),
         'priority': -750,
         'extra_parameters': {
             'obscal': calibrations.get_list(),
@@ -98,11 +101,10 @@ def main():
     dbh = None
 
     try:
-        if not args.dry_run:
+        if not dry_run:
             logger.info('Connecting to CADC')
             dbh = taco.call_function('connect_to_cadcdp')
 
-        if not args.dry_run:
             recipe_id = create_recipe_instance(dbh, all_uris, options)
 
             if recipe_id is not None:
