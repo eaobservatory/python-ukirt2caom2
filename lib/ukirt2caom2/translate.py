@@ -11,7 +11,7 @@ class Translator():
     def translate(self, header):
         try:
             header = self.taco.call_function('translate_from_FITS',
-                                             header, context='hash')
+                                             header, context='map')
 
         except Exception as e:
             raise TranslationError(str(e))
