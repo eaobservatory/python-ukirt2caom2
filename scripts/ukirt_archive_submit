@@ -111,6 +111,10 @@ def ukirt_archive_submit(instrument, date, verbose=False, dry_run=False):
                 logger.info('Submitted recipe instance {0}'.format(recipe_id))
                 logger.info('Recipe URL: {0}'.format(
                             recipe_instance_url(recipe_id)))
+
+                with open('job-submission.txt', 'a') as f:
+                    print('{0} {1} {2}'.format(instrument, date, recipe_id), file=f)
+
             else:
                 logger.error('Error submitting job')
         else:
