@@ -24,14 +24,14 @@ ircam_filters = {
         '2.122S1':    (2.109, 2.129, '2.122(S1)',       2.122),
         '2.1c':       (2.092, 2.112, '2.1(cont)',       None), #2.100),
         '2.248S1':    (2.23,  2.27,  '2.248(S1)',       2.248),
-        '2.2c':       (None,  None,  '2.2(cont)',       None), #2.200),
+        '2.2c':       (2.26,  2.28,  '2.2(cont)[MK]',   None), #2.200),
         '3.4nbL':     (None,  None,  '3.4nbL',          None), #3.4),
         '3.5mbL':     (None,  None,  '3.5mbL',          None), #3.5),
         '3.6nbLp':    (None,  None,  "3.6nbL'",         None), #3.6),
         '4.0c':       (None,  None,  '4.0(cont)',       None), #4.000),
-        'BrA':        (None,  None,  'BrA',             4.0),
-        'BrG':        (None,  None,  'BrG',             2.0),
-        'BrGz':       (None,  None,  '2.181(BrGz)',     2.181),
+        'BrA':        (None,  None,  'BrA',             4.053),
+        'BrG':        (None,  None,  'BrG',             2.166),
+        'BrGz':       (None,  None,  '2.181(BrGz)',     2.166), # Redshifted BrG
         'CO1%':       (None,  None,  'CO(1%)',          None), # Same as 2.32(CO-1%) ?
         'CO4%':       (None,  None,  'CO(4%)',          None), # Same as 2.42(CO) ?
         'Dust':       (3.250, 3.305, '3.28(dust)',      3.28),
@@ -48,8 +48,7 @@ ircam_filters = {
         'Lp98':       (3.428, 4.108, "L'[MK]",          None), #3.6),
         'Mp98':       (4.572, 4.800, "M'[MK]",          None), #4.800),
         'S(1)':       (None,  None,  'S(1)',            None), # Same as 2.122(S1) ?
-        'S(1)2-1':    (None,  None,  'S(1)2-1',         None), # Same as 2.122(S1) ?
-        'S(1)z':      (None,  None,  'S(1)z',           2.136), # Same as 2.122(S1) ?
+        'S(1)z':      (None,  None,  '2.122(S1)z',      2.122), # Redshifted 2.122(S1) at 2.136
         'nbM':        (None,  None,  'nbM',             None),
 }
 
@@ -57,6 +56,7 @@ ircam_filters = {
 for (alias, filter) in (
                            ('nbL', '3.4nbL'),
                            ('S1z', 'S(1)z'),
+                           ('S(1)2-1', '2.122S1'),
                        ):
     ircam_filters[alias] = ircam_filters[filter]
 
