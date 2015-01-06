@@ -190,10 +190,10 @@ class ObservationMichelle(ObservationUKIRT):
             base = CoordFK5(ra_deg=rabase, dec_deg=decbase)
 
             box = CoordPolygon2D()
-            box.vertices.append(to_coord2D(base.offset(rascale * (x1 - xref), decscale * (y2 - yref)), x1, y2)) #TL
-            box.vertices.append(to_coord2D(base.offset(rascale * (x2 - xref), decscale * (y2 - yref)), x2, y2)) #TR
-            box.vertices.append(to_coord2D(base.offset(rascale * (x2 - xref), decscale * (y1 - yref)), x2, y1)) #BR
-            box.vertices.append(to_coord2D(base.offset(rascale * (x1 - xref), decscale * (y1 - yref)), x1, y1)) #BL
+            box.vertices.append(to_coord2D(base.offset(rascale * (x1 - xref), decscale * (y2 - yref), 0))) #TL
+            box.vertices.append(to_coord2D(base.offset(rascale * (x2 - xref), decscale * (y2 - yref), 0))) #TR
+            box.vertices.append(to_coord2D(base.offset(rascale * (x2 - xref), decscale * (y1 - yref), 0))) #BR
+            box.vertices.append(to_coord2D(base.offset(rascale * (x1 - xref), decscale * (y1 - yref), 0))) #BL
 
             spatial_axes = CoordAxis2D(Axis('RA', 'deg'),
                                        Axis('DEC', 'deg'))
