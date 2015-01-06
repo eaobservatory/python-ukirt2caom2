@@ -187,6 +187,10 @@ class ObservationUFTI(ObservationUKIRT):
         rascale = float(rascale) / 3600.0
         decscale = float(decscale) / 3600.0
 
+        if rascale == 0.0 or decscale == 0.0:
+            logger.error('RA or Dec scale is zero')
+            return None
+
         # Create coordinates
         base = CoordFK5(ra_deg=rabase, dec_deg=decbase)
 
