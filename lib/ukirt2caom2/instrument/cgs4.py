@@ -43,17 +43,20 @@ class ObservationCGS4(ObservationUKIRT):
         self.caom2.instrument = instrument
 
         # CVF
+        if 'CVF' in headers[0]:
+            cvf = headers[0]['CVF']
 
-        cvf = headers[0]['CVF']
+            if cvf.endswith('__'):
+                cvf = cvf[:-2].rstrip()
 
-        if cvf.endswith('__'):
-            cvf = cvf[:-2].rstrip()
-
-        instrument.keywords.append(keywordvalue('cvf', cvf))
+            instrument.keywords.append(keywordvalue('cvf', cvf))
 
         # Filter
 
-        filter = headers[0]['FILTERS']
+        if 'FILTERS' in headers[0]:
+            filter = headers[0]['FILTERS']
+        else:
+            filter = None
 
         if filter == '?:?':
             filter = None
@@ -88,7 +91,10 @@ class ObservationCGS4(ObservationUKIRT):
 
         # Grating
 
-        grating = headers[0]['GRATING']
+        if 'GRATING' in headers[0]:
+            grating = headers[0]['GRATING']
+        else:
+            grating = None
 
         if grating in ('', 'Undefined'):
             grating = None
@@ -98,10 +104,11 @@ class ObservationCGS4(ObservationUKIRT):
 
         self.__grating = grating
 
-        self.__grating_order = headers[0]['GORDER']
+        if 'GORDER' in headers[0]:
+            self.__grating_order = headers[0]['GORDER']
 
-        instrument.keywords.append(keywordvalue('grating_order',
-                                                str(self.__grating_order)))
+            instrument.keywords.append(keywordvalue('grating_order',
+                                                    str(self.__grating_order)))
 
         # Detector mode
 
@@ -120,7 +127,10 @@ class ObservationCGS4(ObservationUKIRT):
 
         # Detector
 
-        detector = normalize_detector_name(headers[0]['DETECTOR'])
+        if 'DETECTOR' in headers[0]:
+            detector = normalize_detector_name(headers[0]['DETECTOR'])
+        else:
+            detector = None
 
         if detector is not None:
             instrument.keywords.append(keywordvalue('detector', detector))
