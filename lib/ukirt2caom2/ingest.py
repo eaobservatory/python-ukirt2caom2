@@ -9,7 +9,8 @@ from caom2 import Proposal, SimpleObservation, Telescope
 from caom2.xml.caom2_observation_reader import ObservationReader
 from caom2.xml.caom2_observation_writer import ObservationWriter
 
-from caom2repoClient.caom2repoClient import CAOM2RepoClient
+from caom2repoClient.caom2repoClient \
+    import CAOM2RepoClient, CAOM2RepoError, CAOM2RepoNotFound
 
 from ukirt2caom2 import IngestionError
 from ukirt2caom2.fixup_headers import fixup_headers
@@ -98,23 +99,27 @@ class IngestRaw:
 
             if use_repo:
                 logger.debug('Getting from CAOM-2: ' + caom2_uri)
-                xml = self.client.get_xml(caom2_uri)
-
-                if xml is None:
-                    in_repo = False
-
-                else:
-                    in_repo = True
+                try:
+                    xml = self.client.get_xml(caom2_uri)
 
                     with BytesIO(xml) as f:
-                        try:
-                            caom2_obs = self.reader.read(f)
-                        except TypeError as e:
-                            logger.error('Failed to read CAOM-2 XML from repository: ' +
-                                         e.message)
-                            logger.debug('Attempting to delete unreadable entry.')
-                            self.client.remove(caom2_uri)
-                            in_repo = False
+                        caom2_obs = self.reader.read(f)
+
+                    in_repo = True
+
+                except TypeError as e:
+                    logger.error('Failed to read CAOM-2 XML from repository: ' +
+                                 e.message)
+                    logger.debug('Attempting to delete unreadable entry.')
+                    self.client.remove(caom2_uri)
+
+                except CAOM2RepoNotFound:
+                    # Do nothing as in_repo already initialized to False.
+                    pass
+
+                except CAOM2RepoError:
+                    raise IngestionError('Failed to get/remove CAOM-2 document')
+
 
             # Check the file directory exists, and if we didn't already find
             # the observation, attempt to read the previous version from a
@@ -170,14 +175,15 @@ class IngestRaw:
                         self.writer.write(observation.caom2, f)
                         xml = f.getvalue()
 
-                    if not in_repo:
-                        logger.debug('Putting to CAOM-2: ' + caom2_uri)
-                        status = self.client.put_xml(caom2_uri, xml)
-                    else:
-                        logger.debug('Updating in CAOM-2: ' + caom2_uri)
-                        status = self.client.update_xml(caom2_uri, xml)
+                    try:
+                        if not in_repo:
+                            logger.debug('Putting to CAOM-2: ' + caom2_uri)
+                            self.client.put_xml(caom2_uri, xml)
+                        else:
+                            logger.debug('Updating in CAOM-2: ' + caom2_uri)
+                            self.client.update_xml(caom2_uri, xml)
 
-                    if not status:
+                    except CAOM2RepoError:
                         raise IngestionError('Failed to send to CAOM-2 repository')
 
             except IngestionError as e:

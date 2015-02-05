@@ -7,7 +7,8 @@ import re
 from caom2 import Algorithm, Artifact, CompositeObservation, Instrument, Plane, Telescope
 from caom2.caom2_enums import CalibrationLevel, ObservationIntentType, ProductType
 from caom2.xml.caom2_observation_writer import ObservationWriter
-from caom2repoClient.caom2repoClient import CAOM2RepoClient
+from caom2repoClient.caom2repoClient \
+    import CAOM2RepoClient, CAOM2RepoError, CAOM2RepoNotFound
 
 from ukirt2caom2.geolocation import ukirt_geolocation
 from ukirt2caom2.release_date import ReleaseCalculator
@@ -101,7 +102,13 @@ class IngestProc:
             caom2_uri = 'caom2:UKIRT/{}_{}_{}'.format(instrument, date, obsnum)
 
             logger.info('Updating record: {}'.format(caom2_uri))
-            self.client.remove(caom2_uri)
-            status = self.client.put_xml(caom2_uri, xml)
-            if not status:
+            # TODO: update record rather than remove and put if it already exists.
+            try:
+                self.client.remove(caom2_uri)
+            except:
+                pass
+
+            try:
+                self.client.put_xml(caom2_uri, xml)
+            except CAOM2RepoError:
                 raise Exception('Failed to send to CAOM-2 repository')
